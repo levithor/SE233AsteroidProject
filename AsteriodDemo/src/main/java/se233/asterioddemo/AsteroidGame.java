@@ -19,12 +19,11 @@ public class AsteroidGame extends Application {
 
     private static final int MAX_ASTEROIDS = 10; // Limit to the number of asteroids
 
-    private double spaceshipX = 400, spaceshipY = 300;
-    private double spaceshipSpeed = 4;
-    private boolean left, right, up, down;
     private List<Bullet> bullets = new ArrayList<>();
     private List<Asteroid> asteroids = new ArrayList<>();
     private Random random = new Random();
+
+    private Spaceship spaceship; // Use the Spaceship class for handling the spaceship
 
     public static void main(String[] args) {
         launch(args);
@@ -43,19 +42,22 @@ public class AsteroidGame extends Application {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
+        // Initialize the spaceship
+        spaceship = new Spaceship(400, 300);
+
         // Handle keyboard input for spaceship movement
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.LEFT) left = true;
-            if (event.getCode() == KeyCode.RIGHT) right = true;
-            if (event.getCode() == KeyCode.UP) up = true;
-            if (event.getCode() == KeyCode.DOWN) down = true;
+            if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(true);
+            if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(true);
+            if (event.getCode() == KeyCode.UP) spaceship.moveUp(true);
+            if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(true);
         });
 
         scene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.LEFT) left = false;
-            if (event.getCode() == KeyCode.RIGHT) right = false;
-            if (event.getCode() == KeyCode.UP) up = false;
-            if (event.getCode() == KeyCode.DOWN) down = false;
+            if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(false);
+            if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(false);
+            if (event.getCode() == KeyCode.UP) spaceship.moveUp(false);
+            if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(false);
         });
 
         // Handle mouse click to shoot bullets
@@ -64,12 +66,12 @@ public class AsteroidGame extends Application {
             double mouseY = event.getY();
 
             // Calculate direction for bullet
-            double angle = Math.atan2(mouseY - spaceshipY, mouseX - spaceshipX);
+            double angle = Math.atan2(mouseY - spaceship.getY(), mouseX - spaceship.getX());
             double bulletDx = Math.cos(angle);
             double bulletDy = Math.sin(angle);
 
             // Create a bullet in the direction of the mouse click
-            bullets.add(new Bullet(spaceshipX + 7.5, spaceshipY + 7.5, bulletDx, bulletDy));
+            bullets.add(new Bullet(spaceship.getX() + 7.5, spaceship.getY() + 7.5, bulletDx, bulletDy));
         });
 
         new AnimationTimer() {
@@ -77,12 +79,9 @@ public class AsteroidGame extends Application {
             public void handle(long now) {
                 gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-                // Move spaceship
-                moveSpaceship();
-
-                // Draw spaceship
-                gc.setFill(Color.BLUE);
-                gc.fillRect(spaceshipX, spaceshipY, 20, 20);
+                // Update and draw spaceship
+                spaceship.update(canvas.getWidth(), canvas.getHeight());
+                spaceship.draw(gc);
 
                 // Update and draw bullets
                 Iterator<Bullet> bulletIterator = bullets.iterator();
@@ -116,19 +115,6 @@ public class AsteroidGame extends Application {
                 checkCollisions();
             }
         }.start();
-    }
-
-    private void moveSpaceship() {
-        if (left) spaceshipX -= spaceshipSpeed;
-        if (right) spaceshipX += spaceshipSpeed;
-        if (up) spaceshipY -= spaceshipSpeed;
-        if (down) spaceshipY += spaceshipSpeed;
-
-        // Wrap spaceship location to the opposite side of the window
-        if (spaceshipX < 0) spaceshipX = 800;
-        if (spaceshipX > 800) spaceshipX = 0;
-        if (spaceshipY < 0) spaceshipY = 600;
-        if (spaceshipY > 600) spaceshipY = 0;
     }
 
     private void spawnAsteroidFromRandomDirection(double canvasWidth, double canvasHeight) {
