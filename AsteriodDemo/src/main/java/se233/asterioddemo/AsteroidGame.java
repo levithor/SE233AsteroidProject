@@ -106,12 +106,9 @@ public class AsteroidGame extends Application {
                 Iterator<Asteroid> asteroidIterator = asteroids.iterator();
                 while (asteroidIterator.hasNext()) {
                     Asteroid asteroid = asteroidIterator.next();
-                    asteroid.update(canvas.getWidth(), canvas.getHeight());
+                    asteroid.update(canvas.getWidth(), canvas.getHeight(), gc);
                     if (asteroid.isOffScreen(canvas.getWidth(), canvas.getHeight())) {
                         asteroidIterator.remove();
-                    } else {
-                        gc.setFill(Color.GRAY);
-                        gc.fillOval(asteroid.getX(), asteroid.getY(), asteroid.getSize(), asteroid.getSize());
                     }
                 }
 
