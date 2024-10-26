@@ -1,10 +1,13 @@
 package se233.asterioddemo;
 
+import javafx.application.Platform;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
+import javafx.scene.image.Image; // Import the Image class
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -17,13 +20,15 @@ import java.util.Random;
 
 public class AsteroidGame extends Application {
 
-    private static final int MAX_ASTEROIDS = 10; // Limit to the number of asteroids
+    private static final int MAX_ASTEROIDS = 10;
 
     private List<Bullet> bullets = new ArrayList<>();
     private List<Asteroid> asteroids = new ArrayList<>();
     private Random random = new Random();
 
-    private Spaceship spaceship; // Use the Spaceship class for handling the spaceship
+    private Spaceship spaceship;
+    private AnimationTimer animationTimer;
+    private Image backgroundImage; // Field for background image
 
     public static void main(String[] args) {
         launch(args);
@@ -42,10 +47,11 @@ public class AsteroidGame extends Application {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // Initialize the spaceship
+        // Load the background image
+        backgroundImage = new Image(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg"));
+
         spaceship = new Spaceship(400, 300);
 
-        // Handle keyboard input for spaceship movement
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(true);
             if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(true);
@@ -60,26 +66,26 @@ public class AsteroidGame extends Application {
             if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(false);
         });
 
-        // Handle mouse click to shoot bullets
         scene.setOnMouseClicked(event -> {
             double mouseX = event.getX();
             double mouseY = event.getY();
 
-            // Calculate direction for bullet
             double angle = Math.atan2(mouseY - spaceship.getY(), mouseX - spaceship.getX());
             double bulletDx = Math.cos(angle);
             double bulletDy = Math.sin(angle);
 
-            // Create a bullet in the direction of the mouse click
             bullets.add(new Bullet(spaceship.getX() + 7.5, spaceship.getY() + 7.5, bulletDx, bulletDy));
         });
 
-        new AnimationTimer() {
+        animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-                // Update and draw spaceship
+                // Draw the background image
+                gc.drawImage(backgroundImage, 0, 0, canvas.getWidth(), canvas.getHeight());
+
+                // Update and draw the spaceship
                 spaceship.update(canvas.getWidth(), canvas.getHeight());
                 spaceship.draw(gc);
 
@@ -96,12 +102,11 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                // Spawn asteroids randomly from all directions
+                // Spawn asteroids and update their positions
                 if (random.nextDouble() < 0.02 && asteroids.size() < MAX_ASTEROIDS) {
                     spawnAsteroidFromRandomDirection(canvas.getWidth(), canvas.getHeight());
                 }
 
-                // Update and draw asteroids
                 Iterator<Asteroid> asteroidIterator = asteroids.iterator();
                 while (asteroidIterator.hasNext()) {
                     Asteroid asteroid = asteroidIterator.next();
@@ -111,38 +116,38 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                // Collision detection
                 checkCollisions();
             }
-        }.start();
+        };
+
+        animationTimer.start();
     }
 
     private void spawnAsteroidFromRandomDirection(double canvasWidth, double canvasHeight) {
         double startX = 0, startY = 0;
         double dx = 0, dy = 0;
 
-        // Choose a random side (0 = top, 1 = bottom, 2 = left, 3 = right)
         int side = random.nextInt(4);
         switch (side) {
-            case 0: // Top
+            case 0:
                 startX = random.nextDouble() * canvasWidth;
                 startY = -30;
                 dx = (random.nextDouble() - 0.5) * 2;
                 dy = 1;
                 break;
-            case 1: // Bottom
+            case 1:
                 startX = random.nextDouble() * canvasWidth;
                 startY = canvasHeight + 30;
                 dx = (random.nextDouble() - 0.5) * 2;
                 dy = -1;
                 break;
-            case 2: // Left
+            case 2:
                 startX = -30;
                 startY = random.nextDouble() * canvasHeight;
                 dx = 1;
                 dy = (random.nextDouble() - 0.5) * 2;
                 break;
-            case 3: // Right
+            case 3:
                 startX = canvasWidth + 30;
                 startY = random.nextDouble() * canvasHeight;
                 dx = -1;
@@ -154,7 +159,6 @@ public class AsteroidGame extends Application {
     }
 
     private void checkCollisions() {
-        // Check for collisions between bullets and asteroids
         Iterator<Bullet> bulletIterator = bullets.iterator();
         while (bulletIterator.hasNext()) {
             Bullet bullet = bulletIterator.next();
@@ -162,12 +166,10 @@ public class AsteroidGame extends Application {
             while (asteroidIterator.hasNext()) {
                 Asteroid asteroid = asteroidIterator.next();
 
-                // Calculate distance between the bullet and asteroid
                 double dx = bullet.getX() - asteroid.getX();
                 double dy = bullet.getY() - asteroid.getY();
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
-                // Check for collision
                 if (distance < asteroid.getSize() / 2) {
                     bulletIterator.remove();
                     asteroidIterator.remove();
@@ -175,5 +177,35 @@ public class AsteroidGame extends Application {
                 }
             }
         }
+
+        Iterator<Asteroid> asteroidIterator = asteroids.iterator();
+        while (asteroidIterator.hasNext()) {
+            Asteroid asteroid = asteroidIterator.next();
+
+            double dx = spaceship.getX() - asteroid.getX();
+            double dy = spaceship.getY() - asteroid.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < asteroid.getSize() / 2) {
+                spaceship.loseLife();
+                asteroidIterator.remove();
+
+                if (!spaceship.isAlive()) {
+                    animationTimer.stop(); // Stop the game logic
+                    Platform.runLater(this::showGameOverAlert); // Schedule the alert
+                    break;
+                }
+                break;
+            }
+        }
+    }
+
+    // Method to show the Game Over alert
+    private void showGameOverAlert() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Game Over");
+        alert.setHeaderText(null);
+        alert.setContentText("You have lost all your lives!"); // Customize the message
+        alert.showAndWait(); // Show the alert
     }
 }

@@ -9,6 +9,7 @@ public class Spaceship {
     private double maxSpeed = 4; // Maximum speed limit
     private double velocityX = 0, velocityY = 0;
     private boolean movingLeft, movingRight, movingUp, movingDown;
+    private int lives = 3; // Start with 3 lives
 
     public Spaceship(double startX, double startY) {
         this.x = startX;
@@ -22,13 +23,19 @@ public class Spaceship {
     public void moveUp(boolean move) { movingUp = move; }
     public void moveDown(boolean move) { movingDown = move; }
 
-    // Getters for x and y position
-    public double getX() {
-        return x;
+    // Getters for x, y, and lives
+    public double getX() { return x; }
+    public double getY() { return y; }
+    public int getLives() { return lives; }
+
+    // Reduce lives by 1
+    public void loseLife() {
+        lives--;
     }
 
-    public double getY() {
-        return y;
+    // Check if the spaceship is still alive
+    public boolean isAlive() {
+        return lives > 0;
     }
 
     // Update spaceship position, velocity, and animation frame
@@ -60,21 +67,13 @@ public class Spaceship {
 
     // Draw spaceship with current animation frame
     public void draw(GraphicsContext gc) {
-        // Calculate the angle based on velocity
-        double angle = Math.atan2(-velocityY, velocityX); // In radians
+        double angle = Math.atan2(-velocityY, velocityX);
         double angleInDegrees = Math.toDegrees(angle);
 
-        // Save the current state of the graphics context
         gc.save();
-
-        // Translate to the spaceship's position
         gc.translate(x, y);
-        // Rotate the graphics context by the calculated angle
         gc.rotate(angleInDegrees);
-        // Draw the spaceship
-        animation.draw(gc, 0, 0); // Draw at the origin after translation and rotation
-
-        // Restore the graphics context to its original state
+        animation.draw(gc, 0, 0);
         gc.restore();
     }
 }
