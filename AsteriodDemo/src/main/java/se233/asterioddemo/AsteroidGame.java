@@ -17,8 +17,10 @@ import java.util.Random;
 
 public class AsteroidGame extends Application {
 
+    private static final int MAX_ASTEROIDS = 10; // Limit to the number of asteroids
+
     private double spaceshipX = 400, spaceshipY = 300;
-    private double spaceshipSpeed = 5;
+    private double spaceshipSpeed = 4;
     private boolean left, right, up, down;
     private List<Bullet> bullets = new ArrayList<>();
     private List<Asteroid> asteroids = new ArrayList<>();
@@ -96,7 +98,7 @@ public class AsteroidGame extends Application {
                 }
 
                 // Spawn asteroids randomly from all directions
-                if (random.nextDouble() < 0.02) {
+                if (random.nextDouble() < 0.02 && asteroids.size() < MAX_ASTEROIDS) {
                     spawnAsteroidFromRandomDirection(canvas.getWidth(), canvas.getHeight());
                 }
 
@@ -104,7 +106,7 @@ public class AsteroidGame extends Application {
                 Iterator<Asteroid> asteroidIterator = asteroids.iterator();
                 while (asteroidIterator.hasNext()) {
                     Asteroid asteroid = asteroidIterator.next();
-                    asteroid.update();
+                    asteroid.update(canvas.getWidth(), canvas.getHeight());
                     if (asteroid.isOffScreen(canvas.getWidth(), canvas.getHeight())) {
                         asteroidIterator.remove();
                     } else {
@@ -124,6 +126,12 @@ public class AsteroidGame extends Application {
         if (right) spaceshipX += spaceshipSpeed;
         if (up) spaceshipY -= spaceshipSpeed;
         if (down) spaceshipY += spaceshipSpeed;
+
+        // Wrap spaceship location to the opposite side of the window
+        if (spaceshipX < 0) spaceshipX = 800;
+        if (spaceshipX > 800) spaceshipX = 0;
+        if (spaceshipY < 0) spaceshipY = 600;
+        if (spaceshipY > 600) spaceshipY = 0;
     }
 
     private void spawnAsteroidFromRandomDirection(double canvasWidth, double canvasHeight) {
