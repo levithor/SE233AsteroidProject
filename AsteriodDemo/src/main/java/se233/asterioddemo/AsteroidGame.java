@@ -17,13 +17,12 @@ import java.util.Random;
 
 public class AsteroidGame extends Application {
 
-    private double spaceshipX = 400, spaceshipY = 300; // Initial spaceship position
-    private double spaceshipSpeed = 4;
+    private double spaceshipX = 400, spaceshipY = 300;
+    private double spaceshipSpeed = 5;
     private boolean left, right, up, down;
-    private List<Bullet> bullets = new ArrayList<>(); // List of bullets on screen
-    private List<Asteroid> asteroids = new ArrayList<>(); // List of asteroids on screen
+    private List<Bullet> bullets = new ArrayList<>();
+    private List<Asteroid> asteroids = new ArrayList<>();
     private Random random = new Random();
-    private static final int MAX_ASTEROIDS = 10; // Maximum number of asteroids allowed on screen at once
 
     public static void main(String[] args) {
         launch(args);
@@ -42,15 +41,12 @@ public class AsteroidGame extends Application {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // Handle key events
+        // Handle keyboard input for spaceship movement
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.LEFT) left = true;
             if (event.getCode() == KeyCode.RIGHT) right = true;
             if (event.getCode() == KeyCode.UP) up = true;
             if (event.getCode() == KeyCode.DOWN) down = true;
-            if (event.getCode() == KeyCode.SPACE) {
-                bullets.add(new Bullet(spaceshipX, spaceshipY));
-            }
         });
 
         scene.setOnKeyReleased(event -> {
@@ -60,10 +56,23 @@ public class AsteroidGame extends Application {
             if (event.getCode() == KeyCode.DOWN) down = false;
         });
 
+        // Handle mouse click to shoot bullets
+        scene.setOnMouseClicked(event -> {
+            double mouseX = event.getX();
+            double mouseY = event.getY();
+
+            // Calculate direction for bullet
+            double angle = Math.atan2(mouseY - spaceshipY, mouseX - spaceshipX);
+            double bulletDx = Math.cos(angle);
+            double bulletDy = Math.sin(angle);
+
+            // Create a bullet in the direction of the mouse click
+            bullets.add(new Bullet(spaceshipX + 7.5, spaceshipY + 7.5, bulletDx, bulletDy));
+        });
+
         new AnimationTimer() {
             @Override
             public void handle(long now) {
-                // Clear screen
                 gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
                 // Move spaceship
@@ -86,18 +95,22 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                // Spawn asteroids randomly if below the limit
-                if (random.nextDouble() < 0.02 && asteroids.size() < MAX_ASTEROIDS) {
-                    asteroids.add(new Asteroid(random.nextInt((int)canvas.getWidth()), 0));
+                // Spawn asteroids randomly from all directions
+                if (random.nextDouble() < 0.02) {
+                    spawnAsteroidFromRandomDirection(canvas.getWidth(), canvas.getHeight());
                 }
 
                 // Update and draw asteroids
                 Iterator<Asteroid> asteroidIterator = asteroids.iterator();
                 while (asteroidIterator.hasNext()) {
                     Asteroid asteroid = asteroidIterator.next();
-                    asteroid.update(canvas.getWidth(), canvas.getHeight());
-                    gc.setFill(Color.GRAY);
-                    gc.fillOval(asteroid.getX(), asteroid.getY(), asteroid.getSize(), asteroid.getSize());
+                    asteroid.update();
+                    if (asteroid.isOffScreen(canvas.getWidth(), canvas.getHeight())) {
+                        asteroidIterator.remove();
+                    } else {
+                        gc.setFill(Color.GRAY);
+                        gc.fillOval(asteroid.getX(), asteroid.getY(), asteroid.getSize(), asteroid.getSize());
+                    }
                 }
 
                 // Collision detection
@@ -111,36 +124,65 @@ public class AsteroidGame extends Application {
         if (right) spaceshipX += spaceshipSpeed;
         if (up) spaceshipY -= spaceshipSpeed;
         if (down) spaceshipY += spaceshipSpeed;
-
-        // Check for out of bounds and wrap around
-        if (spaceshipX < 0) spaceshipX = 800;
-        if (spaceshipX > 800) spaceshipX = 0;
-        if (spaceshipY < 0) spaceshipY = 600;
-        if (spaceshipY > 600) spaceshipY = 0;
     }
 
-    // This constantly checks for collisions between asteroids and bullets in their lists
+    private void spawnAsteroidFromRandomDirection(double canvasWidth, double canvasHeight) {
+        double startX = 0, startY = 0;
+        double dx = 0, dy = 0;
+
+        // Choose a random side (0 = top, 1 = bottom, 2 = left, 3 = right)
+        int side = random.nextInt(4);
+        switch (side) {
+            case 0: // Top
+                startX = random.nextDouble() * canvasWidth;
+                startY = -30;
+                dx = (random.nextDouble() - 0.5) * 2;
+                dy = 1;
+                break;
+            case 1: // Bottom
+                startX = random.nextDouble() * canvasWidth;
+                startY = canvasHeight + 30;
+                dx = (random.nextDouble() - 0.5) * 2;
+                dy = -1;
+                break;
+            case 2: // Left
+                startX = -30;
+                startY = random.nextDouble() * canvasHeight;
+                dx = 1;
+                dy = (random.nextDouble() - 0.5) * 2;
+                break;
+            case 3: // Right
+                startX = canvasWidth + 30;
+                startY = random.nextDouble() * canvasHeight;
+                dx = -1;
+                dy = (random.nextDouble() - 0.5) * 2;
+                break;
+        }
+
+        asteroids.add(new Asteroid(startX, startY, dx, dy));
+    }
+
     private void checkCollisions() {
-        Iterator<Asteroid> asteroidIterator = asteroids.iterator();
-        while (asteroidIterator.hasNext()) {
-            Asteroid asteroid = asteroidIterator.next();
-            Iterator<Bullet> bulletIterator = bullets.iterator();
-            while (bulletIterator.hasNext()) {
-                Bullet bullet = bulletIterator.next();
-                if (isCollision(asteroid, bullet)) {
-                    asteroidIterator.remove();
+        // Check for collisions between bullets and asteroids
+        Iterator<Bullet> bulletIterator = bullets.iterator();
+        while (bulletIterator.hasNext()) {
+            Bullet bullet = bulletIterator.next();
+            Iterator<Asteroid> asteroidIterator = asteroids.iterator();
+            while (asteroidIterator.hasNext()) {
+                Asteroid asteroid = asteroidIterator.next();
+
+                // Calculate distance between the bullet and asteroid
+                double dx = bullet.getX() - asteroid.getX();
+                double dy = bullet.getY() - asteroid.getY();
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Check for collision
+                if (distance < asteroid.getSize() / 2) {
                     bulletIterator.remove();
+                    asteroidIterator.remove();
                     break;
                 }
             }
         }
-    }
-
-    // This checks if an asteroid and bullet have collided
-    private boolean isCollision(Asteroid asteroid, Bullet bullet) {
-        double dx = asteroid.getX() - bullet.getX();
-        double dy = asteroid.getY() - bullet.getY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-        return distance < asteroid.getSize() / 2;
     }
 }

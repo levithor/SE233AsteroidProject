@@ -1,34 +1,25 @@
 package se233.asterioddemo;
 
-import java.util.Random;
-
 class Asteroid {
     private double x, y;
-    private double vx, vy;
-    private double size;
-    private Random random = new Random();
+    private double dx, dy;
+    private double speed = 5;
+    private double size = 30;
 
-    public Asteroid(double x, double y) {
+    public Asteroid(double x, double y, double dx, double dy) {
         this.x = x;
         this.y = y;
-        this.size = 20 + random.nextDouble() * 30; // Random size between 20 and 50
-        this.vx = -1 + random.nextDouble() * 2; // Random velocity between -1 and 1
-        this.vy = 1 + random.nextDouble() * 2; // Random velocity between 1 and 3
+        this.dx = dx;
+        this.dy = dy;
     }
 
-    public void update(double width, double height) {
-        x += vx;
-        y += vy;
-
-        // Wrap around logic
-        if (x < 0) x = width;
-        if (x > width) x = 0;
-        if (y < 0) y = height;
-        if (y > height) y = 0;
+    public void update() {
+        x += dx * speed;
+        y += dy * speed;
     }
 
     public boolean isOffScreen(double width, double height) {
-        return x < 0 || x > width || y < 0 || y > height;
+        return x < -size || x > width + size || y < -size || y > height + size;
     }
 
     public double getX() {
