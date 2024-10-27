@@ -3,6 +3,8 @@ package se233.asterioddemo;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
+import java.util.Objects;
+
 public class Animation {
     private Image spriteSheet;
     private int frameWidth = 256;
@@ -12,7 +14,7 @@ public class Animation {
     private double angle = 0; // Angle for rotation
 
     public Animation(String resourcePath) {
-        this.spriteSheet = new Image(getClass().getResourceAsStream("/se233/asterioddemo/assets/PlayerplaneA.png"));
+        this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/PlayerplaneA.png")));
     }
 
     // Set the current frame of the animation
