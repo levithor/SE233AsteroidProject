@@ -4,6 +4,7 @@ import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.transform.Rotate;
 import java.util.List;
+import java.util.Objects;
 
 class Asteroid extends Character {
     public enum Size {
@@ -42,7 +43,7 @@ class Asteroid extends Character {
     public Asteroid(double x, double y, double dx, double dy, Size size) {
         super(x, y, dx, dy, size.getSpeed(), size.getSize());
         this.asteroidSize = size;
-        this.image = new Image(getClass().getResourceAsStream("/se233/asterioddemo/assets/asteroid.png"));
+        this.image = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/asteroid.png")));
     }
 
     @Override

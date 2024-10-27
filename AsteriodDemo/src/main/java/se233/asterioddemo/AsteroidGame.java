@@ -19,6 +19,7 @@ public class AsteroidGame extends Application {
 
     private static final int MAX_ASTEROIDS = 10;
 
+    private List<Explosion> explosions = new ArrayList<>();
     private List<Bullet> bullets = new ArrayList<>();
     private List<Asteroid> asteroids = new ArrayList<>();
     private List<Boss> bosses = new ArrayList<>();
@@ -119,6 +120,18 @@ public class AsteroidGame extends Application {
                     }
                 }
 
+                // Update and render explosions
+                Iterator<Explosion> explosionIterator = explosions.iterator();
+                while (explosionIterator.hasNext()) {
+                    Explosion explosion = explosionIterator.next();
+                    explosion.update();
+                    if (explosion.isFinished()) {
+                        explosionIterator.remove();
+                    } else {
+                        explosion.draw(gc);
+                    }
+                }
+
                 checkCollisions();
 
                 // Display the collision count
@@ -189,6 +202,9 @@ public class AsteroidGame extends Application {
                     asteroidIterator.remove();
                     asteroid.duplicate(asteroids); // Duplicate the asteroid
                     scoreCount++; // Increment the collision counter
+
+                    // Add explosion
+                    explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
 
                     // Spawn a Boss if scoreCount is divisible by 10
                     if (scoreCount % 10 == 0) {
