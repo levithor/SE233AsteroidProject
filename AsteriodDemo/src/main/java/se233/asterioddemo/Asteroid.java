@@ -3,14 +3,45 @@ package se233.asterioddemo;
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.transform.Rotate;
+import java.util.List;
 
 class Asteroid extends Character {
+    public enum Size {
+        SMALL(20, 2), MEDIUM(30, 1.25), LARGE(40, 0.5);
+
+        private final double size;
+        private final double speed;
+
+        Size(double size, double speed) {
+            this.size = size;
+            this.speed = speed;
+        }
+
+        public double getSize() {
+            return size;
+        }
+
+        public double getSpeed() {
+            return speed;
+        }
+
+        public Size getNextSize() {
+            switch (this) {
+                case LARGE: return MEDIUM;
+                case MEDIUM: return SMALL;
+                default: return null;
+            }
+        }
+    }
+
     private double angle = 0;
     private double rotationSpeed = 2; // Rotation speed in degrees per update
     private Image image;
+    private Size asteroidSize;
 
-    public Asteroid(double x, double y, double dx, double dy) {
-        super(x, y, dx, dy, 2, 30);
+    public Asteroid(double x, double y, double dx, double dy, Size size) {
+        super(x, y, dx, dy, size.getSpeed(), size.getSize());
+        this.asteroidSize = size;
         this.image = new Image(getClass().getResourceAsStream("/se233/asterioddemo/assets/asteroid.png"));
     }
 
@@ -36,5 +67,13 @@ class Asteroid extends Character {
 
     public boolean isOffScreen(double width, double height) {
         return x < -size || x > width + size || y < -size || y > height + size;
+    }
+
+    public void duplicate(List<Asteroid> asteroids) {
+        Size nextSize = asteroidSize.getNextSize();
+        if (nextSize != null) {
+            asteroids.add(new Asteroid(x, y, dx, dy, nextSize));
+            asteroids.add(new Asteroid(x, y, -dx, -dy, nextSize));
+        }
     }
 }

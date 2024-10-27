@@ -154,7 +154,11 @@ public class AsteroidGame extends Application {
                 break;
         }
 
-        asteroids.add(new Asteroid(startX, startY, dx, dy));
+        // Randomly select an asteroid size
+        Asteroid.Size[] sizes = Asteroid.Size.values();
+        Asteroid.Size size = sizes[random.nextInt(sizes.length)];
+
+        asteroids.add(new Asteroid(startX, startY, dx, dy, size));
     }
 
     private void checkCollisions() {
@@ -172,6 +176,7 @@ public class AsteroidGame extends Application {
                 if (distance < asteroid.getSize() / 2) {
                     bulletIterator.remove();
                     asteroidIterator.remove();
+                    asteroid.duplicate(asteroids); // Duplicate the asteroid
                     scoreCount++; // Increment the collision counter
                     break;
                 }
