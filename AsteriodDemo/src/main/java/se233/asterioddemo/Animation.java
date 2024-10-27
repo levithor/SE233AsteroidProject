@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class Animation {
     private Image spriteSheet;
-    private int frameWidth = 256;
+    private int frameWidth = 135;
     private int frameHeight = 122;
     private int currentFrame = 0;
     private double scale = 0.5; // Adjust scale as needed for smaller display
