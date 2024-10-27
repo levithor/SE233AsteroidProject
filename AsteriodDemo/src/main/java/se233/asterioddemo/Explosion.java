@@ -15,6 +15,9 @@ public class Explosion {
     private int totalFrames = columns * rows;
     private double frameWidth;
     private double frameHeight;
+    private int delayCounter = 0; // Counter to control the frame update speed
+    private int delayThreshold = 3; // Adjust this value to slow down the animation
+    private double scale = 0.5; // Scale factor for the animation size
 
     public Explosion(double x, double y) {
         this.x = x;
@@ -24,8 +27,16 @@ public class Explosion {
         this.frameHeight = spriteSheet.getHeight() / rows;
     }
 
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
     public void update() {
-        frame++;
+        delayCounter++;
+        if (delayCounter >= delayThreshold) {
+            frame++;
+            delayCounter = 0;
+        }
     }
 
     public boolean isFinished() {
@@ -37,6 +48,9 @@ public class Explosion {
         int frameX = (currentFrame % columns) * (int) frameWidth;
         int frameY = (currentFrame / columns) * (int) frameHeight;
 
-        gc.drawImage(spriteSheet, frameX, frameY, frameWidth, frameHeight, x - frameWidth / 2, y - frameHeight / 2, frameWidth, frameHeight);
+        double scaledWidth = frameWidth * scale;
+        double scaledHeight = frameHeight * scale;
+
+        gc.drawImage(spriteSheet, frameX, frameY, frameWidth, frameHeight, x - scaledWidth / 2, y - scaledHeight / 2, scaledWidth, scaledHeight);
     }
 }
