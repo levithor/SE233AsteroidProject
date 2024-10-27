@@ -14,7 +14,7 @@ public class Animation {
     private double angle = 0; // Angle for rotation
 
     public Animation(String resourcePath) {
-        this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/PlayerplaneA.png")));
+        this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream(resourcePath)));
     }
 
     // Set the current frame of the animation
@@ -50,7 +50,7 @@ public class Animation {
 
         // Move to the spaceship's position and apply rotation
         gc.translate(x + scaledWidth / 2, y + scaledHeight / 2);  // Translate to the center of the image
-        gc.rotate(angle);                                         // Rotate by the angle
+        gc.rotate(angle);                                         // Rotate by the angle in degrees
 
         // Draw the image centered around the spaceship position
         gc.drawImage(spriteSheet, sx, 0, frameWidth, frameHeight,
@@ -60,7 +60,7 @@ public class Animation {
         gc.restore();
     }
 
-    // Methods to get scaled width and height for positioning purposes
+    // Get scaled width and height for positioning purposes
     public double getWidth() {
         return frameWidth * scale;
     }

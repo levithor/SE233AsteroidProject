@@ -7,7 +7,8 @@ public class Spaceship extends Character {
     private double velocityX = 0, velocityY = 0;
     private boolean movingLeft, movingRight, movingUp, movingDown;
     private int lives = 3; // Start with 3 lives
-    private double angle = 0; // Angle for the spaceship rotation
+    private double currentAngle = 0; // Current rotation angle
+    private double rotationSpeed = 10; // Speed of rotation (degrees per update)
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
@@ -15,26 +16,13 @@ public class Spaceship extends Character {
     }
 
     // Handle direction control
-    public void moveLeft(boolean move) {
-        movingLeft = move;
-    }
-
-    public void moveRight(boolean move) {
-        movingRight = move;
-    }
-
-    public void moveUp(boolean move) {
-        movingUp = move;
-    }
-
-    public void moveDown(boolean move) {
-        movingDown = move;
-    }
+    public void moveLeft(boolean move) { movingLeft = move; }
+    public void moveRight(boolean move) { movingRight = move; }
+    public void moveUp(boolean move) { movingUp = move; }
+    public void moveDown(boolean move) { movingDown = move; }
 
     // Getters for lives
-    public int getLives() {
-        return lives;
-    }
+    public int getLives() { return lives; }
 
     // Reduce lives by 1
     public void loseLife() {
@@ -49,30 +37,35 @@ public class Spaceship extends Character {
     // Update spaceship position, velocity, and animation frame
     @Override
     public void update(double canvasWidth, double canvasHeight, GraphicsContext gc) {
-        // Set direction-based angle in Animation
+        // Adjust velocity based on input
+        if (movingLeft) {
+            velocityX -= speed;
+            animation.faceLeft();
+        }
+        if (movingRight) {
+            velocityX += speed;
+            animation.faceRight();
+        }
         if (movingUp) {
-            velocityY = -speed;
+            velocityY -= speed;
             animation.faceUp();
-        } else if (movingDown) {
-            velocityY = speed;
+        }
+        if (movingDown) {
+            velocityY += speed;
             animation.faceDown();
-        } else {
-            velocityY = 0;
         }
 
-        if (movingLeft) {
-            velocityX = -speed;
-            animation.faceLeft();
-        } else if (movingRight) {
-            velocityX = speed;
-            animation.faceRight();
-        } else {
-            velocityX = 0;
-        }
+        // Apply maximum speed limit
+        velocityX = Math.max(-4, Math.min(4, velocityX));
+        velocityY = Math.max(-4, Math.min(4, velocityY));
 
         // Update position based on velocity
         x += velocityX;
         y += velocityY;
+
+        // Apply friction to gradually reduce speed when no input
+        if (!movingLeft && !movingRight) velocityX *= 0.95;
+        if (!movingUp && !movingDown) velocityY *= 0.95;
 
         // Wrap spaceship around edges
         if (x < 0) x = canvasWidth;
@@ -80,7 +73,7 @@ public class Spaceship extends Character {
         if (y < 0) y = canvasHeight;
         if (y > canvasHeight) y = 0;
 
-        // Draw spaceship with current animation angle
-        animation.draw(gc, x - animation.getWidth() / 2, y - animation.getHeight() / 2);
+        // Draw spaceship with current animation frame
+        animation.draw(gc, x, y);
     }
 }
