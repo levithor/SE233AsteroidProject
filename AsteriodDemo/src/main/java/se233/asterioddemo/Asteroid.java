@@ -4,23 +4,17 @@ import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.transform.Rotate;
 
-class Asteroid {
-    private double x, y;
-    private double dx, dy;
-    private double speed = 2;
-    private double size = 30;
+class Asteroid extends Character {
     private double angle = 0;
     private double rotationSpeed = 2; // Rotation speed in degrees per update
     private Image image;
 
     public Asteroid(double x, double y, double dx, double dy) {
-        this.x = x;
-        this.y = y;
-        this.dx = dx;
-        this.dy = dy;
+        super(x, y, dx, dy, 2, 30);
         this.image = new Image(getClass().getResourceAsStream("/se233/asterioddemo/assets/asteroid.png"));
     }
 
+    @Override
     public void update(double width, double height, GraphicsContext gc) {
         x += dx * speed;
         y += dy * speed;
@@ -42,17 +36,5 @@ class Asteroid {
 
     public boolean isOffScreen(double width, double height) {
         return x < -size || x > width + size || y < -size || y > height + size;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public double getSize() {
-        return size;
     }
 }

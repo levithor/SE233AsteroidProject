@@ -13,10 +13,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class AsteroidGame extends Application {
 
@@ -48,7 +45,7 @@ public class AsteroidGame extends Application {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         // Load the background image
-        backgroundImage = new Image(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg"));
+        backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
 
         spaceship = new Spaceship(400, 300);
 
@@ -86,8 +83,7 @@ public class AsteroidGame extends Application {
                 gc.drawImage(backgroundImage, 0, 0, canvas.getWidth(), canvas.getHeight());
 
                 // Update and draw the spaceship
-                spaceship.update(canvas.getWidth(), canvas.getHeight());
-                spaceship.draw(gc);
+                spaceship.update(canvas.getWidth(), canvas.getHeight(), gc);
 
                 // Update and draw bullets
                 Iterator<Bullet> bulletIterator = bullets.iterator();

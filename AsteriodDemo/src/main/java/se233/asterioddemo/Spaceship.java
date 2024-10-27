@@ -2,18 +2,14 @@ package se233.asterioddemo;
 
 import javafx.scene.canvas.GraphicsContext;
 
-public class Spaceship {
+public class Spaceship extends Character {
     private final Animation animation;
-    private double x, y;
-    private double speed = 0.1; // Controls acceleration rate
-    private double maxSpeed = 4; // Maximum speed limit
     private double velocityX = 0, velocityY = 0;
     private boolean movingLeft, movingRight, movingUp, movingDown;
     private int lives = 3; // Start with 3 lives
 
     public Spaceship(double startX, double startY) {
-        this.x = startX;
-        this.y = startY;
+        super(startX, startY, 0, 0, 0.1, 0);
         this.animation = new Animation("/se233/asterioddemo/assets/PlayerplaneA.png");
     }
 
@@ -23,9 +19,7 @@ public class Spaceship {
     public void moveUp(boolean move) { movingUp = move; }
     public void moveDown(boolean move) { movingDown = move; }
 
-    // Getters for x, y, and lives
-    public double getX() { return x; }
-    public double getY() { return y; }
+    // Getters for lives
     public int getLives() { return lives; }
 
     // Reduce lives by 1
@@ -39,7 +33,8 @@ public class Spaceship {
     }
 
     // Update spaceship position, velocity, and animation frame
-    public void update(double canvasWidth, double canvasHeight) {
+    @Override
+    public void update(double canvasWidth, double canvasHeight, GraphicsContext gc) {
         // Adjust velocity based on input
         if (movingLeft) velocityX -= speed;
         if (movingRight) velocityX += speed;
@@ -47,8 +42,8 @@ public class Spaceship {
         if (movingDown) velocityY += speed;
 
         // Apply maximum speed limit
-        velocityX = Math.max(-maxSpeed, Math.min(maxSpeed, velocityX));
-        velocityY = Math.max(-maxSpeed, Math.min(maxSpeed, velocityY));
+        velocityX = Math.max(-4, Math.min(4, velocityX));
+        velocityY = Math.max(-4, Math.min(4, velocityY));
 
         // Update position based on velocity
         x += velocityX;
@@ -63,10 +58,8 @@ public class Spaceship {
         if (x > canvasWidth) x = 0;
         if (y < 0) y = canvasHeight;
         if (y > canvasHeight) y = 0;
-    }
 
-    // Draw spaceship with current animation frame
-    public void draw(GraphicsContext gc) {
+        // Draw spaceship with current animation frame
         double angle = Math.atan2(-velocityY, velocityX);
         double angleInDegrees = Math.toDegrees(angle);
 
