@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
-import javafx.scene.image.Image; // Import the Image class
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -25,7 +25,8 @@ public class AsteroidGame extends Application {
 
     private Spaceship spaceship;
     private AnimationTimer animationTimer;
-    private Image backgroundImage; // Field for background image
+    private Image backgroundImage;
+    private int scoreCount = 0; // Counter for collisions
 
     public static void main(String[] args) {
         launch(args);
@@ -44,7 +45,6 @@ public class AsteroidGame extends Application {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // Load the background image
         backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
 
         spaceship = new Spaceship(400, 300);
@@ -79,13 +79,10 @@ public class AsteroidGame extends Application {
             public void handle(long now) {
                 gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-                // Draw the background image
                 gc.drawImage(backgroundImage, 0, 0, canvas.getWidth(), canvas.getHeight());
 
-                // Update and draw the spaceship
                 spaceship.update(canvas.getWidth(), canvas.getHeight(), gc);
 
-                // Update and draw bullets
                 Iterator<Bullet> bulletIterator = bullets.iterator();
                 while (bulletIterator.hasNext()) {
                     Bullet bullet = bulletIterator.next();
@@ -98,7 +95,6 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                // Spawn asteroids and update their positions
                 if (random.nextDouble() < 0.02 && asteroids.size() < MAX_ASTEROIDS) {
                     spawnAsteroidFromRandomDirection(canvas.getWidth(), canvas.getHeight());
                 }
@@ -113,6 +109,13 @@ public class AsteroidGame extends Application {
                 }
 
                 checkCollisions();
+
+                // Display the collision count
+                gc.setFill(Color.WHITE);
+                gc.fillText("Score: " + scoreCount, 10, 20);
+
+                // Display the lives count
+                gc.fillText("Lives: " + spaceship.getLives(), 10, 40);
             }
         };
 
@@ -169,6 +172,7 @@ public class AsteroidGame extends Application {
                 if (distance < asteroid.getSize() / 2) {
                     bulletIterator.remove();
                     asteroidIterator.remove();
+                    scoreCount++; // Increment the collision counter
                     break;
                 }
             }
@@ -187,8 +191,8 @@ public class AsteroidGame extends Application {
                 asteroidIterator.remove();
 
                 if (!spaceship.isAlive()) {
-                    animationTimer.stop(); // Stop the game logic
-                    Platform.runLater(this::showGameOverAlert); // Schedule the alert
+                    animationTimer.stop();
+                    Platform.runLater(this::showGameOverAlert);
                     break;
                 }
                 break;
@@ -196,12 +200,11 @@ public class AsteroidGame extends Application {
         }
     }
 
-    // Method to show the Game Over alert
     private void showGameOverAlert() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Game Over");
         alert.setHeaderText(null);
-        alert.setContentText("You have lost all your lives!"); // Customize the message
-        alert.showAndWait(); // Show the alert
+        alert.setContentText("You have lost all your lives!");
+        alert.showAndWait();
     }
 }
