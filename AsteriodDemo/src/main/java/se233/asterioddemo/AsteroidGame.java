@@ -21,6 +21,7 @@ public class AsteroidGame extends Application {
 
     private List<Bullet> bullets = new ArrayList<>();
     private List<Asteroid> asteroids = new ArrayList<>();
+    private List<Boss> bosses = new ArrayList<>();
     private Random random = new Random();
 
     private Spaceship spaceship;
@@ -108,6 +109,16 @@ public class AsteroidGame extends Application {
                     }
                 }
 
+                // Update and render Boss instances
+                Iterator<Boss> bossIterator = bosses.iterator();
+                while (bossIterator.hasNext()) {
+                    Boss boss = bossIterator.next();
+                    boss.update(canvas.getWidth(), canvas.getHeight(), gc);
+                    if (boss.isOffScreen(canvas.getWidth(), canvas.getHeight())) {
+                        bossIterator.remove();
+                    }
+                }
+
                 checkCollisions();
 
                 // Display the collision count
@@ -178,6 +189,11 @@ public class AsteroidGame extends Application {
                     asteroidIterator.remove();
                     asteroid.duplicate(asteroids); // Duplicate the asteroid
                     scoreCount++; // Increment the collision counter
+
+                    // Spawn a Boss if scoreCount is divisible by 10
+                    if (scoreCount % 10 == 0) {
+                        spawnBoss();
+                    }
                     break;
                 }
             }
@@ -203,6 +219,15 @@ public class AsteroidGame extends Application {
                 break;
             }
         }
+    }
+
+    private void spawnBoss() {
+        double startX = 400; // Middle of the window (assuming window width is 800)
+        double startY = -60; // Start from the top of the window
+        double dx = 0; //
+        double dy = 1; // Move downwards
+
+        bosses.add(new Boss(startX, startY, dx, dy));
     }
 
     private void showGameOverAlert() {

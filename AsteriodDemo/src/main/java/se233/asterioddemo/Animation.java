@@ -3,6 +3,8 @@ package se233.asterioddemo;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
+import java.util.Objects;
+
 public class Animation {
     private Image spriteSheet;
     private int frameWidth = 256;
@@ -11,7 +13,7 @@ public class Animation {
     private double scale = 0.5; // Adjust scale as needed for smaller display
 
     public Animation(String resourcePath) {
-        this.spriteSheet = new Image(getClass().getResourceAsStream(resourcePath));
+        this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream(resourcePath)));
     }
 
     public void setFrame(int frame) {
