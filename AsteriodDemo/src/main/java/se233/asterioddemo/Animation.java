@@ -6,66 +6,52 @@ import javafx.scene.image.Image;
 import java.util.Objects;
 
 public class Animation {
-    private Image spriteSheet;
-    private int frameWidth = 135;
-    private int frameHeight = 122;
+    private final Image spriteSheet;
+    private final int frameWidth;
+    private final int frameHeight;
     private int currentFrame = 0;
-    private double scale = 0.5; // Adjust scale as needed for smaller display
-    private double angle = 0; // Angle for rotation
+    private final int columns = 3; // Number of columns in the sprite sheet
+    private final int rows = 1;    // Number of rows in the sprite sheet
+    private final int totalFrames = columns * rows;
+    private double scale = 0.5;
+    private double angle = 0;
+    private double x, y;
 
-    public Animation(String resourcePath) {
-        this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream(resourcePath)));
+    public Animation(double x, double y) {
+        this.x = x;
+        this.y = y;
+        this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/PlayerplaneFA.png")));
+        this.frameWidth = (int) spriteSheet.getWidth() / columns;
+        this.frameHeight = (int) spriteSheet.getHeight() / rows;
     }
 
-    // Set the current frame of the animation
-    public void setFrame(int frame) {
-        currentFrame = frame;
+    public void setPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
     }
 
-    // Set angle based on direction
-    public void faceUp() {
-        angle = 0; // Face upwards
+    public void setAngle(double angle) {
+        this.angle = angle;
     }
 
-    public void faceDown() {
-        angle = 180; // Face downwards
+    public void setFrameByVelocity(double velocity) {
+        if (velocity >= 0 && velocity <= 1) {
+            currentFrame = 0;
+        } else if (velocity > 1 && velocity <= 3) {
+            currentFrame = 1;
+        } else if (velocity > 3) {
+            currentFrame = 2;
+        }
     }
 
-    public void faceLeft() {
-        angle = 270; // Face left
-    }
+    public void draw(GraphicsContext gc) {
+        int frameX = (currentFrame % columns) * frameWidth;
+        int frameY = (currentFrame / columns) * frameHeight;
 
-    public void faceRight() {
-        angle = 90; // Face right
-    }
-
-    // Draw the animation at the specified position and angle
-    public void draw(GraphicsContext gc, double x, double y) {
-        int sx = currentFrame * frameWidth;
-        double scaledWidth = frameWidth * scale;
-        double scaledHeight = frameHeight * scale;
-
-        // Save the current transformation state
-        gc.save();
-
-        // Move to the spaceship's position and apply rotation
-        gc.translate(x + scaledWidth / 2, y + scaledHeight / 2);  // Translate to the center of the image
-        gc.rotate(angle);                                         // Rotate by the angle in degrees
-
-        // Draw the image centered around the spaceship position
-        gc.drawImage(spriteSheet, sx, 0, frameWidth, frameHeight,
-                -scaledWidth / 2, -scaledHeight / 2, scaledWidth, scaledHeight);
-
-        // Restore the original transformation state
-        gc.restore();
-    }
-
-    // Get scaled width and height for positioning purposes
-    public double getWidth() {
-        return frameWidth * scale;
-    }
-
-    public double getHeight() {
-        return frameHeight * scale;
+        gc.save(); // Save the current state of GraphicsContext
+        gc.translate(x, y);
+        gc.rotate(angle);
+        gc.drawImage(spriteSheet, frameX, frameY, frameWidth, frameHeight, -frameWidth * scale / 2, -frameHeight * scale / 2, frameWidth * scale, frameHeight * scale);
+        gc.restore(); // Restore the original state (un-rotate)
     }
 }
