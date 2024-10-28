@@ -12,10 +12,24 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.layout.Pane;
+import javafx.scene.control.Button;
+import javafx.stage.Stage;
 
+import java.io.*;
 import java.util.*;
 
 public class AsteroidGame extends Application {
+
+    private static final String HIGH_SCORE_FILE = "highscore.txt";
+    private int highScore = 0;
+    private Scene mainMenuScene;
+    private Scene gameScene;
+    private Pane root;
+    private Canvas canvas;
 
     private static final int MAX_ASTEROIDS = 10;
 
@@ -36,36 +50,64 @@ public class AsteroidGame extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Pane root = new Pane();
-        Canvas canvas = new Canvas(800, 600);
+        primaryStage.setTitle("Asteroid Game");
+
+        // Load the high score at the start of the game
+        loadHighScore();
+
+        // Initialize main menu
+        initMainMenu(primaryStage);
+
+        primaryStage.setScene(mainMenuScene);
+        primaryStage.show();
+    }
+
+    private void initMainMenu(Stage primaryStage) {
+        Pane menuRoot = new Pane();
+        mainMenuScene = new Scene(menuRoot, 800, 600);
+
+        Button startButton = new Button("Start Game");
+        startButton.setLayoutX(350);
+        startButton.setLayoutY(250);
+        startButton.setOnAction(event -> startGame(primaryStage));
+
+        menuRoot.getChildren().add(startButton);
+    }
+
+    private void startGame(Stage primaryStage) {
+        root = new Pane();
+        canvas = new Canvas(800, 600);
         root.getChildren().add(canvas);
 
-        Scene scene = new Scene(root);
-        primaryStage.setTitle("Asteroid Game");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        gameScene = new Scene(root);
+        primaryStage.setScene(gameScene);
 
+        // Initialize game elements and start the game loop
+        initGame();
+    }
+
+    private void initGame() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
 
         spaceship = new Spaceship(400, 300);
 
-        scene.setOnKeyPressed(event -> {
+        gameScene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(true);
             if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(true);
             if (event.getCode() == KeyCode.UP) spaceship.moveUp(true);
             if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(true);
         });
 
-        scene.setOnKeyReleased(event -> {
+        gameScene.setOnKeyReleased(event -> {
             if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(false);
             if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(false);
             if (event.getCode() == KeyCode.UP) spaceship.moveUp(false);
             if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(false);
         });
 
-        scene.setOnMouseClicked(event -> {
+        gameScene.setOnMouseClicked(event -> {
             double mouseX = event.getX();
             double mouseY = event.getY();
 
@@ -110,7 +152,6 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                // Update and render Boss instances
                 Iterator<Boss> bossIterator = bosses.iterator();
                 while (bossIterator.hasNext()) {
                     Boss boss = bossIterator.next();
@@ -120,7 +161,6 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                // Update and render explosions
                 Iterator<Explosion> explosionIterator = explosions.iterator();
                 while (explosionIterator.hasNext()) {
                     Explosion explosion = explosionIterator.next();
@@ -134,12 +174,10 @@ public class AsteroidGame extends Application {
 
                 checkCollisions();
 
-                // Display the collision count
                 gc.setFill(Color.WHITE);
                 gc.fillText("Score: " + scoreCount, 10, 20);
-
-                // Display the lives count
                 gc.fillText("Lives: " + spaceship.getLives(), 10, 40);
+                gc.fillText("High Score: " + highScore, 10, 60);
             }
         };
 
@@ -213,6 +251,35 @@ public class AsteroidGame extends Application {
                     break;
                 }
             }
+
+            // Check collision with Boss
+            Iterator<Boss> bossIterator = bosses.iterator();
+            while (bossIterator.hasNext()) {
+                Boss boss = bossIterator.next();
+
+                double dx = bullet.getX() - boss.getX();
+                double dy = bullet.getY() - boss.getY();
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < boss.getSize() / 2) {
+                    bulletIterator.remove();
+                    boss.incrementHitCount();
+                    boss.changeImageTemporarily();
+                    if (boss.getHitCount() >= 10) {
+                        bossIterator.remove();
+                        scoreCount++; // Increment the collision counter
+
+                        // Add explosion
+                        explosions.add(new Explosion(boss.getX(), boss.getY()));
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (scoreCount > highScore) {
+            highScore = scoreCount;
+            saveHighScore();
         }
 
         Iterator<Asteroid> asteroidIterator = asteroids.iterator();
@@ -246,11 +313,49 @@ public class AsteroidGame extends Application {
         bosses.add(new Boss(startX, startY, dx, dy));
     }
 
+    private void saveHighScore() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(HIGH_SCORE_FILE))) {
+            writer.write(String.valueOf(highScore));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadHighScore() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(HIGH_SCORE_FILE))) {
+            String line = reader.readLine();
+            if (line != null) {
+                highScore = Integer.parseInt(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void showGameOverAlert() {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Game Over");
         alert.setHeaderText(null);
         alert.setContentText("You have lost all your lives!");
+        alert.setOnCloseRequest(event -> {
+            // Clear game elements
+            bullets.clear();
+            asteroids.clear();
+            bosses.clear();
+            explosions.clear();
+
+            // Reset game state
+            scoreCount = 0;
+            spaceship.reset();
+
+            // Restart the animation timer
+            animationTimer.stop();
+            animationTimer.start();
+
+            // Return to main menu
+            Stage primaryStage = (Stage) alert.getDialogPane().getScene().getWindow();
+            primaryStage.setScene(mainMenuScene);
+        });
         alert.showAndWait();
     }
 }

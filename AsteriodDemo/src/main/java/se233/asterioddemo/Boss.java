@@ -2,15 +2,17 @@ package se233.asterioddemo;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import javafx.scene.paint.Color;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
 public class Boss extends Character {
     private Image image;
+    private Image hitImage;
     private double angle = 0;
     private double rotationSpeed = 0; // Rotation speed in degrees per update
     private boolean descending = true; // Flag to indicate if the boss is descending
@@ -18,10 +20,12 @@ public class Boss extends Character {
     private List<Bullet> bullets = new ArrayList<>(); // List to track bullets
     private long lastBulletTime = 0; // Last time a bullet was emitted
     private long bulletInterval = 1000; // Interval between bullets in milliseconds
+    private int hitCount = 0; // Counter for bullet hits
 
     public Boss(double x, double y, double dx, double dy) {
         super(x, y, dx, dy, 0.75, 100); // Initialize with a size of 100 and speed of 0.75
         this.image = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/bossFace.png")));
+        this.hitImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/ainsleyFace.png")));
         this.initialY = y; // Set the initial Y position
     }
 
@@ -79,5 +83,22 @@ public class Boss extends Character {
 
     public boolean isOffScreen(double width, double height) {
         return x < -size || x > width + size || y < -size || y > height + size;
+    }
+
+    public void incrementHitCount() {
+        hitCount++;
+    }
+
+    public int getHitCount() {
+        return hitCount;
+    }
+
+    public void changeImageTemporarily() {
+        Image originalImage = this.image;
+        this.image = this.hitImage;
+
+        PauseTransition pause = new PauseTransition(Duration.seconds(0.25));
+        pause.setOnFinished(event -> this.image = originalImage);
+        pause.play();
     }
 }

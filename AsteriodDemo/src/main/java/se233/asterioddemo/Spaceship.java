@@ -76,4 +76,16 @@ public class Spaceship extends Character {
         // Draw spaceship with current animation frame
         animation.draw(gc, x, y);
     }
+
+    public void reset() {
+        this.x = 400; // Reset to initial X position
+        this.y = 300; // Reset to initial Y position
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.lives = 3; // Reset lives to initial value
+        this.movingLeft = false;
+        this.movingRight = false;
+        this.movingUp = false;
+        this.movingDown = false;
+    }
 }
