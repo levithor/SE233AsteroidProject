@@ -6,7 +6,7 @@ import java.util.logging.Level;
 
 public class Spaceship extends Character {
     private static final Logger logger = Logger.getLogger(Spaceship.class.getName());
-    private final Animation animation;
+    private final PlaneAnimation planeAnimation;
     private double velocityX = 0, velocityY = 0;
     private boolean rotatingLeft, rotatingRight, movingForward;
     private int lives = 3;
@@ -16,7 +16,7 @@ public class Spaceship extends Character {
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
-        this.animation = new Animation(startX, startY);
+        this.planeAnimation = new PlaneAnimation(startX, startY);
     }
 
     public void rotateLeft(boolean rotate) {
@@ -72,14 +72,14 @@ public class Spaceship extends Character {
         }
 
         // Update the animation frame based on combined velocity
-        animation.setFrameByVelocity(velocity);
-        animation.setAngle(currentAngle); // Set rotation to face the current angle
+        planeAnimation.setFrameByVelocity(velocity);
+        planeAnimation.setAngle(currentAngle); // Set rotation to face the current angle
 
         // Update spaceship position
         x += velocityX;
         y += velocityY;
 
-        animation.setPosition(x, y);
+        planeAnimation.setPosition(x, y);
 
         // Apply friction to gradually reduce speed when not moving forward
         if (!movingForward) {
@@ -93,7 +93,7 @@ public class Spaceship extends Character {
         if (y < 0) y = canvasHeight;
         if (y > canvasHeight) y = 0;
 
-        animation.draw(gc);
+        planeAnimation.draw(gc);
     }
 
     public Bullet createBullet() {
@@ -101,6 +101,13 @@ public class Spaceship extends Character {
         double bulletDx = Math.cos(angle);
         double bulletDy = Math.sin(angle);
         return new Bullet(x + 7.5, y + 7.5, bulletDx, bulletDy);
+    }
+
+    public Missile createMissile() {
+        double angle = Math.toRadians(currentAngle + 270);
+        double missileDx = Math.cos(angle);
+        double missileDy = Math.sin(angle);
+        return new Missile(x + 7.5, y + 7.5, missileDx, missileDy);
     }
 
     public void reset() {

@@ -34,6 +34,7 @@ public class AsteroidGame extends Application {
 
     private static final int MAX_ASTEROIDS = 10;
 
+    private List<Missile> missiles = new ArrayList<>();
     private List<Explosion> explosions = new ArrayList<>();
     private List<Bullet> bullets = new ArrayList<>();
     private List<Asteroid> asteroids = new ArrayList<>();
@@ -132,6 +133,9 @@ public class AsteroidGame extends Application {
             if (event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.ENTER) {
                 bullets.add(spaceship.createBullet());
             }
+            if (event.getCode() == KeyCode.M) { // Use 'M' key for missile
+                missiles.add(spaceship.createMissile());
+            }
         });
 
         gameScene.setOnKeyReleased(event -> {
@@ -174,7 +178,8 @@ public class AsteroidGame extends Application {
                     }
                 }
 
-                if (random.nextDouble() < 0.02 && asteroids.size() < MAX_ASTEROIDS) {
+                // Ensure constant spawning of asteroids
+                while (asteroids.size() < MAX_ASTEROIDS) {
                     spawnAsteroidFromRandomDirection(canvas.getWidth(), canvas.getHeight());
                 }
 
@@ -204,6 +209,21 @@ public class AsteroidGame extends Application {
                         explosionIterator.remove();
                     } else {
                         explosion.draw(gc);
+                    }
+                }
+
+                Iterator<Missile> missileIterator = missiles.iterator();
+                while (missileIterator.hasNext()) {
+                    Missile missile = missileIterator.next();
+                    missile.update();
+                    if (missile.isOffScreen(canvas.getWidth(), canvas.getHeight())) {
+                        missileIterator.remove();
+                    } else if (missile.shouldExplode()) {
+                        explosions.add(new Explosion(missile.getX(), missile.getY()));
+                        handleMissileExplosion(missile);
+                        missileIterator.remove();
+                    } else {
+                        missile.draw(gc);
                     }
                 }
 
@@ -338,6 +358,62 @@ public class AsteroidGame extends Application {
                     break;
                 }
                 break;
+            }
+        }
+    }
+
+    private void handleMissileExplosion(Missile missile) {
+        double explosionX = missile.getX();
+        double explosionY = missile.getY();
+        double explosionRadius = missile.getExplosionRadius();
+
+        List<Asteroid> newAsteroids = new ArrayList<>(); // List to hold new asteroids
+
+        Iterator<Asteroid> asteroidIterator = asteroids.iterator();
+        while (asteroidIterator.hasNext()) {
+            Asteroid asteroid = asteroidIterator.next();
+
+            double dx = explosionX - asteroid.getX();
+            double dy = explosionY - asteroid.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < explosionRadius) {
+                asteroidIterator.remove();
+                asteroid.duplicate(newAsteroids); // Add new asteroids to the separate list
+                scoreCount++; // Increment the collision counter
+                logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+
+                // Add explosion
+                explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
+
+                // Spawn a Boss if scoreCount is divisible by 10
+                if (scoreCount % 10 == 0) {
+                    spawnBoss();
+                }
+            }
+        }
+
+        asteroids.addAll(newAsteroids); // Add new asteroids to the main list after iteration
+
+        Iterator<Boss> bossIterator = bosses.iterator();
+        while (bossIterator.hasNext()) {
+            Boss boss = bossIterator.next();
+
+            double dx = explosionX - boss.getX();
+            double dy = explosionY - boss.getY();
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < explosionRadius) {
+                boss.incrementHitCount();
+                boss.changeImageTemporarily();
+                if (boss.getHitCount() >= 10) {
+                    bossIterator.remove();
+                    scoreCount++; // Increment the collision counter
+                    logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+
+                    // Add explosion
+                    explosions.add(new Explosion(boss.getX(), boss.getY()));
+                }
             }
         }
     }
