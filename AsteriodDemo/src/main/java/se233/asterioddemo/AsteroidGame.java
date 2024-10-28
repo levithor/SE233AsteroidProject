@@ -7,9 +7,10 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.application.Application;
@@ -66,12 +67,37 @@ public class AsteroidGame extends Application {
         Pane menuRoot = new Pane();
         mainMenuScene = new Scene(menuRoot, 800, 600);
 
+        // Load the background image
+        Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
+        BackgroundSize backgroundSize = new BackgroundSize(100, 100, true, true, false, true);
+        BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, backgroundSize);
+        menuRoot.setBackground(new Background(background));
+
+        // Create and position the label
+        Label titleLabel = new Label("ASTEROIDZ");
+        titleLabel.setLayoutX(275); // Adjust the X position as needed
+        titleLabel.setLayoutY(50);  // Adjust the Y position as needed
+        titleLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: orange;"); // Optional: style the label
+
         Button startButton = new Button("Start Game");
         startButton.setLayoutX(350);
         startButton.setLayoutY(250);
         startButton.setOnAction(event -> startGame(primaryStage));
 
-        menuRoot.getChildren().add(startButton);
+        Button resetHighScoreButton = new Button("Reset High Score");
+        resetHighScoreButton.setLayoutX(350);
+        resetHighScoreButton.setLayoutY(300);
+        resetHighScoreButton.setOnAction(event -> {
+            highScore = 0;
+            saveHighScore();
+        });
+
+        Button exitButton = new Button("Exit");
+        exitButton.setLayoutX(350);
+        exitButton.setLayoutY(350);
+        exitButton.setOnAction(event -> Platform.exit());
+
+        menuRoot.getChildren().addAll(titleLabel, startButton, resetHighScoreButton, exitButton);
     }
 
     private void startGame(Stage primaryStage) {
