@@ -8,7 +8,7 @@ import java.util.Objects;
 
 class Asteroid extends Character {
     public enum Size {
-        SMALL(20, 2), MEDIUM(30, 1.25), LARGE(40, 0.5);
+        SMALL(30, 1.25), MEDIUM(45, 0.75), LARGE(65, 0.25);
 
         private final double size;
         private final double speed;

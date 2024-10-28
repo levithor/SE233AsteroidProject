@@ -3,27 +3,27 @@ package se233.asterioddemo;
 import javafx.application.Platform;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
-import javafx.stage.Stage;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import java.io.*;
 import java.util.*;
 
 public class AsteroidGame extends Application {
+
+    private static final Logger logger = Logger.getLogger(AsteroidGame.class.getName());
 
     private static final String HIGH_SCORE_FILE = "highscore.txt";
     private int highScore = 0;
@@ -200,7 +200,7 @@ public class AsteroidGame extends Application {
 
                 checkCollisions();
 
-                gc.setFill(Color.WHITE);
+                gc.setFill(Color.VIOLET);
                 gc.fillText("Score: " + scoreCount, 10, 20);
                 gc.fillText("Lives: " + spaceship.getLives(), 10, 40);
                 gc.fillText("High Score: " + highScore, 10, 60);
@@ -266,6 +266,7 @@ public class AsteroidGame extends Application {
                     asteroidIterator.remove();
                     asteroid.duplicate(asteroids); // Duplicate the asteroid
                     scoreCount++; // Increment the collision counter
+                    logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
 
                     // Add explosion
                     explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
@@ -294,6 +295,7 @@ public class AsteroidGame extends Application {
                     if (boss.getHitCount() >= 10) {
                         bossIterator.remove();
                         scoreCount++; // Increment the collision counter
+                        logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
 
                         // Add explosion
                         explosions.add(new Explosion(boss.getX(), boss.getY()));
@@ -306,6 +308,7 @@ public class AsteroidGame extends Application {
         if (scoreCount > highScore) {
             highScore = scoreCount;
             saveHighScore();
+            logger.log(Level.INFO, "New high score: " + highScore);
         }
 
         Iterator<Asteroid> asteroidIterator = asteroids.iterator();
@@ -322,7 +325,7 @@ public class AsteroidGame extends Application {
 
                 if (!spaceship.isAlive()) {
                     animationTimer.stop();
-                    Platform.runLater(this::showGameOverAlert);
+                    Platform.runLater(this::gameOverOption);
                     break;
                 }
                 break;
@@ -358,30 +361,30 @@ public class AsteroidGame extends Application {
         }
     }
 
-    private void showGameOverAlert() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Game Over");
-        alert.setHeaderText(null);
-        alert.setContentText("You have lost all your lives!");
-        alert.setOnCloseRequest(event -> {
-            // Clear game elements
-            bullets.clear();
-            asteroids.clear();
-            bosses.clear();
-            explosions.clear();
+    private void gameOverOption() {
+        VBox gameOverBox = new VBox(20);
+        gameOverBox.setAlignment(Pos.CENTER);
+        gameOverBox.setPrefSize(canvas.getWidth(), canvas.getHeight());
+        gameOverBox.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
 
-            // Reset game state
+        Label gameOverLabel = new Label("Game Over");
+        gameOverLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: white;");
+
+        Button restartButton = new Button("Restart");
+        restartButton.setOnAction(event -> {
             scoreCount = 0;
             spaceship.reset();
-
-            // Restart the animation timer
-            animationTimer.stop();
-            animationTimer.start();
-
-            // Return to main menu
-            Stage primaryStage = (Stage) alert.getDialogPane().getScene().getWindow();
-            primaryStage.setScene(mainMenuScene);
+            asteroids.clear();
+            bullets.clear();
+            bosses.clear();
+            explosions.clear();
+            startGame((Stage) root.getScene().getWindow());
         });
-        alert.showAndWait();
+
+        Button exitButton = new Button("Exit");
+        exitButton.setOnAction(event -> Platform.exit());
+
+        gameOverBox.getChildren().addAll(gameOverLabel, restartButton, exitButton);
+        root.getChildren().add(gameOverBox);
     }
 }

@@ -1,8 +1,11 @@
 package se233.asterioddemo;
 
 import javafx.scene.canvas.GraphicsContext;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class Spaceship extends Character {
+    private static final Logger logger = Logger.getLogger(Spaceship.class.getName());
     private final Animation animation;
     private double velocityX = 0, velocityY = 0; // Start with zero velocity
     private boolean movingLeft, movingRight, movingUp, movingDown;
@@ -15,15 +18,31 @@ public class Spaceship extends Character {
         this.animation = new Animation(startX, startY);
     }
 
-    public void moveLeft(boolean move) { movingLeft = move; }
-    public void moveRight(boolean move) { movingRight = move; }
-    public void moveUp(boolean move) { movingUp = move; }
-    public void moveDown(boolean move) { movingDown = move; }
+    public void moveLeft(boolean move) {
+        movingLeft = move;
+        logger.log(Level.FINE, "Moving left: " + move);
+    }
+
+    public void moveRight(boolean move) {
+        movingRight = move;
+        logger.log(Level.FINE, "Moving right: " + move);
+    }
+
+    public void moveUp(boolean move) {
+        movingUp = move;
+        logger.log(Level.FINE, "Moving up: " + move);
+    }
+
+    public void moveDown(boolean move) {
+        movingDown = move;
+        logger.log(Level.FINE, "Moving down: " + move);
+    }
 
     public int getLives() { return lives; }
 
     public void loseLife() {
         lives--;
+        logger.log(Level.WARNING, "Lost a life. Remaining lives: " + lives);
     }
 
     public boolean isAlive() {
