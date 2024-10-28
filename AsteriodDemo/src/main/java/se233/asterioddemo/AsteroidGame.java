@@ -120,18 +120,17 @@ public class AsteroidGame extends Application {
         spaceship = new Spaceship(400, 300);
 
         gameScene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(true);
-            if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(true);
-            if (event.getCode() == KeyCode.UP) spaceship.moveUp(true);
-            if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(true);
+            if (event.getCode() == KeyCode.LEFT) spaceship.rotateLeft(true);
+            if (event.getCode() == KeyCode.RIGHT) spaceship.rotateRight(true);
+            if (event.getCode() == KeyCode.UP) spaceship.moveForward(true);
         });
 
         gameScene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.LEFT) spaceship.moveLeft(false);
-            if (event.getCode() == KeyCode.RIGHT) spaceship.moveRight(false);
-            if (event.getCode() == KeyCode.UP) spaceship.moveUp(false);
-            if (event.getCode() == KeyCode.DOWN) spaceship.moveDown(false);
+            if (event.getCode() == KeyCode.LEFT) spaceship.rotateLeft(false);
+            if (event.getCode() == KeyCode.RIGHT) spaceship.rotateRight(false);
+            if (event.getCode() == KeyCode.UP) spaceship.moveForward(false);
         });
+
 
         gameScene.setOnMouseClicked(event -> {
             double mouseX = event.getX();

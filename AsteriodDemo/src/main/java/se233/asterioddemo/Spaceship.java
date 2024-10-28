@@ -7,35 +7,31 @@ import java.util.logging.Level;
 public class Spaceship extends Character {
     private static final Logger logger = Logger.getLogger(Spaceship.class.getName());
     private final Animation animation;
-    private double velocityX = 0, velocityY = 0; // Start with zero velocity
-    private boolean movingLeft, movingRight, movingUp, movingDown;
+    private double velocityX = 0, velocityY = 0;
+    private boolean rotatingLeft, rotatingRight, movingForward;
     private int lives = 3;
-    private double currentAngle = 0;
+    private double currentAngle = 0; // Angle of spaceship facing direction
     private final double speed = 0.1;
+    private final double rotationSpeed = 3; // Adjust rotation speed as needed
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
         this.animation = new Animation(startX, startY);
     }
 
-    public void moveLeft(boolean move) {
-        movingLeft = move;
-        logger.log(Level.FINE, "Moving left: " + move);
+    public void rotateLeft(boolean rotate) {
+        rotatingLeft = rotate;
+        logger.log(Level.FINE, "Rotating left: " + rotate);
     }
 
-    public void moveRight(boolean move) {
-        movingRight = move;
-        logger.log(Level.FINE, "Moving right: " + move);
+    public void rotateRight(boolean rotate) {
+        rotatingRight = rotate;
+        logger.log(Level.FINE, "Rotating right: " + rotate);
     }
 
-    public void moveUp(boolean move) {
-        movingUp = move;
-        logger.log(Level.FINE, "Moving up: " + move);
-    }
-
-    public void moveDown(boolean move) {
-        movingDown = move;
-        logger.log(Level.FINE, "Moving down: " + move);
+    public void moveForward(boolean move) {
+        movingForward = move;
+        logger.log(Level.FINE, "Moving forward: " + move);
     }
 
     public int getLives() { return lives; }
@@ -51,42 +47,47 @@ public class Spaceship extends Character {
 
     @Override
     public void update(double canvasWidth, double canvasHeight, GraphicsContext gc) {
-        if (movingLeft) {
-            velocityX -= speed;
-            currentAngle -= 5;
+        // Rotate the spaceship when rotating left or right
+        if (rotatingLeft) {
+            currentAngle -= rotationSpeed;
         }
-        if (movingRight) {
-            velocityX += speed;
-            currentAngle += 5;
-        }
-        if (movingUp) {
-            velocityY -= speed;
-        }
-        if (movingDown) {
-            velocityY += speed;
+        if (rotatingRight) {
+            currentAngle += rotationSpeed;
         }
 
-        velocityX = Math.max(-4, Math.min(4, velocityX));
-        velocityY = Math.max(-4, Math.min(4, velocityY));
+        // Move forward in the direction of currentAngle when pressing forward
+        if (movingForward) {
+            velocityX += speed * Math.cos(Math.toRadians(currentAngle + 270));
+            velocityY += speed * Math.sin(Math.toRadians(currentAngle + 270));
+        }
 
         // Calculate the combined velocity magnitude
         double velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
 
+        // Limit the velocity to a maximum value for smoother movement
+        if (velocity > 4) {
+            double scale = 4 / velocity;
+            velocityX *= scale;
+            velocityY *= scale;
+        }
+
         // Update the animation frame based on combined velocity
         animation.setFrameByVelocity(velocity);
-        animation.setAngle(currentAngle);
+        animation.setAngle(currentAngle); // Set rotation to face the current angle
+
+        // Update spaceship position
         x += velocityX;
         y += velocityY;
 
         animation.setPosition(x, y);
 
-        // Print velocity and current frame for debugging
-        System.out.println("Velocity: " + velocity);
+        // Apply friction to gradually reduce speed when not moving forward
+        if (!movingForward) {
+            velocityX *= 0.9;
+            velocityY *= 0.9;
+        }
 
-        // Apply friction to gradually reduce speed when no input
-        if (!movingLeft && !movingRight) velocityX *= 0.9;
-        if (!movingUp && !movingDown) velocityY *= 0.9;
-
+        // Wrap-around screen logic
         if (x < 0) x = canvasWidth;
         if (x > canvasWidth) x = 0;
         if (y < 0) y = canvasHeight;
@@ -101,9 +102,8 @@ public class Spaceship extends Character {
         this.velocityX = 0;
         this.velocityY = 0;
         this.lives = 3; // Reset lives to initial value
-        this.movingLeft = false;
-        this.movingRight = false;
-        this.movingUp = false;
-        this.movingDown = false;
+        this.rotatingLeft = false;
+        this.rotatingRight = false;
+        this.movingForward = false;
     }
 }
