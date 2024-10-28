@@ -96,6 +96,13 @@ public class Spaceship extends Character {
         animation.draw(gc);
     }
 
+    public Bullet createBullet() {
+        double angle = Math.toRadians(currentAngle + 270);
+        double bulletDx = Math.cos(angle);
+        double bulletDy = Math.sin(angle);
+        return new Bullet(x + 7.5, y + 7.5, bulletDx, bulletDy);
+    }
+
     public void reset() {
         this.x = 400; // Reset to initial X position
         this.y = 300; // Reset to initial Y position

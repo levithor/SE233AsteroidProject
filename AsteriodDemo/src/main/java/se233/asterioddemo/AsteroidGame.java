@@ -120,28 +120,38 @@ public class AsteroidGame extends Application {
         spaceship = new Spaceship(400, 300);
 
         gameScene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.LEFT) spaceship.rotateLeft(true);
-            if (event.getCode() == KeyCode.RIGHT) spaceship.rotateRight(true);
-            if (event.getCode() == KeyCode.UP) spaceship.moveForward(true);
+            if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
+                spaceship.rotateLeft(true);
+            }
+            if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
+                spaceship.rotateRight(true);
+            }
+            if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
+                spaceship.moveForward(true);
+            }
+            if (event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.ENTER) {
+                bullets.add(spaceship.createBullet());
+            }
         });
 
         gameScene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.LEFT) spaceship.rotateLeft(false);
-            if (event.getCode() == KeyCode.RIGHT) spaceship.rotateRight(false);
-            if (event.getCode() == KeyCode.UP) spaceship.moveForward(false);
+            if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
+                spaceship.rotateLeft(false);
+            }
+            if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
+                spaceship.rotateRight(false);
+            }
+            if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
+                spaceship.moveForward(false);
+            }
         });
 
 
         gameScene.setOnMouseClicked(event -> {
-            double mouseX = event.getX();
-            double mouseY = event.getY();
-
-            double angle = Math.atan2(mouseY - spaceship.getY(), mouseX - spaceship.getX());
-            double bulletDx = Math.cos(angle);
-            double bulletDy = Math.sin(angle);
-
-            bullets.add(new Bullet(spaceship.getX() + 7.5, spaceship.getY() + 7.5, bulletDx, bulletDy));
+            bullets.add(spaceship.createBullet()); //No longer tracks mouse position
         });
+
+
 
         animationTimer = new AnimationTimer() {
             @Override
@@ -380,10 +390,15 @@ public class AsteroidGame extends Application {
             startGame((Stage) root.getScene().getWindow());
         });
 
+        Button returnToMenuButton = new Button("Return to Menu");
+        returnToMenuButton.setOnAction(event -> {
+            ((Stage) root.getScene().getWindow()).setScene(mainMenuScene);
+        });
+
         Button exitButton = new Button("Exit");
         exitButton.setOnAction(event -> Platform.exit());
 
-        gameOverBox.getChildren().addAll(gameOverLabel, restartButton, exitButton);
+        gameOverBox.getChildren().addAll(gameOverLabel, restartButton, returnToMenuButton, exitButton);
         root.getChildren().add(gameOverBox);
     }
 }
