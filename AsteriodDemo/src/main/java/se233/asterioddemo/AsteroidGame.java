@@ -18,6 +18,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 import java.io.*;
 import java.util.*;
@@ -27,6 +30,9 @@ public class AsteroidGame extends Application {
     private static final Logger logger = Logger.getLogger(AsteroidGame.class.getName());
     private long lastMissileTime = 0;
     private static final long MISSILE_COOLDOWN = 2000; // Cooldown period in milliseconds
+    private int hitCount = 0;
+    private static final int HITS_FOR_BOSS = 10; // Threshold for spawning a Boss
+
 
     private static final String HIGH_SCORE_FILE = "highscore.txt";
     private int highScore = 0;
@@ -148,6 +154,11 @@ public class AsteroidGame extends Application {
         // Initialize game elements and start the game loop
         initGame();
         spawnScoutbot();
+
+        // Create a Timeline to spawn a Scoutbot every 15 seconds
+        Timeline scoutbotSpawner = new Timeline(new KeyFrame(Duration.seconds(15), event -> spawnScoutbot()));
+        scoutbotSpawner.setCycleCount(Timeline.INDEFINITE); // Run indefinitely
+        scoutbotSpawner.play(); // Start the Timeline
     }
 
     private void spawnScoutbot() {
@@ -353,7 +364,14 @@ public class AsteroidGame extends Application {
                         asteroidIterator.remove();
                         asteroid.duplicate(asteroids);
 
-                        // Add points based on asteroid size
+                        hitCount++; // Increment hit count
+                        logger.log(Level.INFO, "Hit count: " + hitCount);
+
+                        if (hitCount >= HITS_FOR_BOSS) {
+                            spawnBoss();
+                            hitCount = 0; // Reset hit count after spawning a Boss
+                        }
+
                         switch (asteroid.getAsteroidSize()) {
                             case SMALL:
                                 scoreCount += POINTS_ASTEROID_SMALL;
@@ -368,15 +386,10 @@ public class AsteroidGame extends Application {
 
                         logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
                         explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
-
-                        if (scoreCount % 1000 == 0) {
-                            spawnBoss();
-                        }
                         break;
                     }
                 }
 
-                // Collision logic for Boss objects
                 Iterator<Boss> bossIterator = bosses.iterator();
                 while (bossIterator.hasNext()) {
                     Boss boss = bossIterator.next();
@@ -399,9 +412,28 @@ public class AsteroidGame extends Application {
                         break;
                     }
                 }
+
+                // Collision logic for Scoutbots
+                Iterator<Scoutbot> scoutbotIterator = scoutbots.iterator();
+                while (scoutbotIterator.hasNext()) {
+                    Scoutbot scoutbot = scoutbotIterator.next();
+
+                    double dx = bullet.getX() - scoutbot.getX();
+                    double dy = bullet.getY() - scoutbot.getY();
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < scoutbot.getSize() / 2) {
+                        bulletIterator.remove();
+                        scoutbotIterator.remove();
+                        scoreCount += POINTS_SCOUTBOT;
+                        logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
+
+                        explosions.add(new Explosion(scoutbot.getX(), scoutbot.getY()));
+                        break;
+                    }
+                }
             }
 
-            // Collision logic for Asteroids and Spaceship
             Iterator<Asteroid> asteroidIterator = asteroids.iterator();
             while (asteroidIterator.hasNext()) {
                 Asteroid asteroid = asteroidIterator.next();
@@ -466,10 +498,6 @@ public class AsteroidGame extends Application {
 
                     logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
                     explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
-
-                    if (scoreCount % 100 == 0) {
-                        spawnBoss();
-                    }
                 }
 
                 if (missile == null) {

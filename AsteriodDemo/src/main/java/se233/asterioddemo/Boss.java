@@ -19,8 +19,9 @@ public class Boss extends Character {
     private double initialY; // Initial Y position to track descent
     private List<Bullet> bullets = new ArrayList<>(); // List to track bullets
     private long lastBulletTime = 0; // Last time a bullet was emitted
-    private long bulletInterval = 1000; // Interval between bullets in milliseconds
+    private long bulletInterval = 2000; // Interval between bullets in milliseconds
     private int hitCount = 0; // Counter for bullet hits
+    private double bulletSpeed = 0.05; // Speed of emitted bullets
 
     public Boss(double x, double y, double dx, double dy) {
         super(x, y, dx, dy, 0.75, 100); // Initialize with a size of 100 and speed of 0.75
@@ -78,7 +79,11 @@ public class Boss extends Character {
     private void emitBullet() {
         double bulletX = x + size / 2;
         double bulletY = y + size;
-        bullets.add(new Bullet(bulletX, bulletY, 0, 1)); // Bullet travels downward
+
+        // Emit three bullets at different angles with the specified speed
+        bullets.add(new Bullet(bulletX, bulletY, 0, bulletSpeed)); // Bullet travels downward
+        bullets.add(new Bullet(bulletX, bulletY, -0.5 * bulletSpeed, bulletSpeed)); // Bullet travels downward-left
+        bullets.add(new Bullet(bulletX, bulletY, 0.5 * bulletSpeed, bulletSpeed)); // Bullet travels downward-right
     }
 
     public boolean isOffScreen(double width, double height) {
@@ -100,5 +105,13 @@ public class Boss extends Character {
         PauseTransition pause = new PauseTransition(Duration.seconds(0.25));
         pause.setOnFinished(event -> this.image = originalImage);
         pause.play();
+    }
+
+    public void setBulletSpeed(double bulletSpeed) {
+        this.bulletSpeed = bulletSpeed;
+    }
+
+    public double getBulletSpeed() {
+        return bulletSpeed;
     }
 }
