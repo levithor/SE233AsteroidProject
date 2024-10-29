@@ -8,7 +8,7 @@ import java.util.List;
 public class Scoutbot extends Character {
     private Image image;
     private double angle = 0;
-    private final double rotationSpeed = 1; // Speed of rotation
+    private final double rotationSpeed = 0.2; // Speed of rotation
     private List<Bullet> bullets = new ArrayList<>(); // List to hold bullets
     private long lastBulletTime = 0; // Last time a bullet was fired
     private final long bulletInterval = 1000; // Interval between bullets in milliseconds
@@ -16,13 +16,13 @@ public class Scoutbot extends Character {
     private final EnemyAnimation enemyAnimation;
     private final Spaceship spaceship; // Reference to the spaceship
     private double radius; // Initial distance from the spaceship
-    private final double radiusDecrement = 20; // Amount to decrease the radius each update
+    private final double radiusDecrement = 5; // Amount to decrease the radius each update
 
     // Range within which Scoutbot will start firing at the player
     private final double attackRange = 1200.0;
 
     public Scoutbot(double startX, double startY, Spaceship spaceship, double initialRadius) {
-        super(startX, startY, 0, 0, 0.2, 20); // Adjust the size as needed
+        super(startX, startY, 0, 0, 0.2, 50); // Adjust the size as needed
         this.enemyAnimation = new EnemyAnimation(startX, startY);
         this.spaceship = spaceship; // Initialize the spaceship reference
         this.radius = initialRadius; // Set the initial radius
@@ -37,8 +37,8 @@ public class Scoutbot extends Character {
 
         angle += rotationSpeed;
         double radian = Math.toRadians(angle);
-        x = centerX + radius * Math.cos(radian);
-        y = centerY + radius * Math.sin(radian);
+        x = centerX + radius * Math.cos(radian + 270);
+        y = centerY + radius * Math.sin(radian + 270);
 
         // Decrease the radius over time
         if (radius > 0) {
@@ -62,14 +62,14 @@ public class Scoutbot extends Character {
         }
     }
 
-    public void attackPlayer(Spaceship player) {
+    public void attackPlayer(Spaceship spaceship) {
         // Check distance to player
-        double distance = Math.sqrt(Math.pow(player.getX() - x, 2) + Math.pow(player.getY() - y, 2));
+        double distance = Math.sqrt(Math.pow(spaceship.getX() - x, 2) + Math.pow(spaceship.getY() - y, 2));
 
         if (distance <= attackRange && System.currentTimeMillis() - lastBulletTime > bulletInterval) {
             // Calculate direction towards the player
-            double dx = player.getX() - x;
-            double dy = player.getY() - y;
+            double dx = spaceship.getX() - x;
+            double dy = spaceship.getY() - y;
             double magnitude = Math.sqrt(dx * dx + dy * dy);
             dx /= magnitude;
             dy /= magnitude;

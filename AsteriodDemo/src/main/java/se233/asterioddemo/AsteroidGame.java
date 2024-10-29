@@ -33,7 +33,7 @@ public class AsteroidGame extends Application {
     private Scene gameScene;
     private Pane root;
     private Canvas canvas;
-    private static final double SCOUTBOT_SPAWN_DISTANCE = 100; // Configurable spawn distance
+    private static final double SCOUTBOT_SPAWN_DISTANCE = 10; // Configurable spawn distance
     private static final int POINTS_ASTEROID_SMALL = 100;
     private static final int POINTS_ASTEROID_MEDIUM = 50;
     private static final int POINTS_ASTEROID_LARGE = 20;
@@ -141,8 +141,10 @@ public class AsteroidGame extends Application {
         backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
 
         spaceship = new Spaceship(400, 300);
-         // Configurable spawn distance
-        spawnScoutbot();
+        // Configurable spawn distance
+        Scoutbot scoutbot = new Scoutbot(spaceship.getX() + SCOUTBOT_SPAWN_DISTANCE, spaceship.getY(), spaceship, SCOUTBOT_SPAWN_DISTANCE);
+        scoutbots.add(scoutbot);
+        scoutbot.attackPlayer(spaceship);
 
         gameScene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
@@ -182,6 +184,7 @@ public class AsteroidGame extends Application {
         gameScene.setOnMouseClicked(event -> {
             bullets.add(spaceship.createBullet()); //No longer tracks mouse position
         });
+
 
         animationTimer = new AnimationTimer() {
             @Override
