@@ -24,6 +24,8 @@ import java.util.*;
 public class AsteroidGame extends Application {
 
     private static final Logger logger = Logger.getLogger(AsteroidGame.class.getName());
+    private long lastMissileTime = 0;
+    private static final long MISSILE_COOLDOWN = 2000; // Cooldown period in milliseconds
 
     private static final String HIGH_SCORE_FILE = "highscore.txt";
     private int highScore = 0;
@@ -31,6 +33,12 @@ public class AsteroidGame extends Application {
     private Scene gameScene;
     private Pane root;
     private Canvas canvas;
+    private static final double SCOUTBOT_SPAWN_DISTANCE = 100; // Configurable spawn distance
+    private static final int POINTS_ASTEROID_SMALL = 100;
+    private static final int POINTS_ASTEROID_MEDIUM = 50;
+    private static final int POINTS_ASTEROID_LARGE = 20;
+    private static final int POINTS_BOSS = 500;
+    private static final int POINTS_SCOUTBOT = 250;
 
     private static final int MAX_ASTEROIDS = 10;
 
@@ -118,12 +126,22 @@ public class AsteroidGame extends Application {
         spawnScoutbot();
     }
 
+    private void spawnScoutbot() {
+        double angle = random.nextDouble() * 10 * Math.PI; // Random angle
+
+        double startX = spaceship.getX() + SCOUTBOT_SPAWN_DISTANCE * Math.cos(angle);
+        double startY = spaceship.getY() + SCOUTBOT_SPAWN_DISTANCE * Math.sin(angle);
+
+        scoutbots.add(new Scoutbot(startX, startY, spaceship, SCOUTBOT_SPAWN_DISTANCE));
+    }
+
     private void initGame() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
 
         spaceship = new Spaceship(400, 300);
+         // Configurable spawn distance
         spawnScoutbot();
 
         gameScene.setOnKeyPressed(event -> {
@@ -140,7 +158,11 @@ public class AsteroidGame extends Application {
                 bullets.add(spaceship.createBullet());
             }
             if (event.getCode() == KeyCode.M) { // Use 'M' key for missile
-                missiles.add(spaceship.createMissile());
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastMissileTime >= MISSILE_COOLDOWN) {
+                    missiles.add(spaceship.createMissile());
+                    lastMissileTime = currentTime;
+                }
             }
         });
 
@@ -169,6 +191,10 @@ public class AsteroidGame extends Application {
                 gc.drawImage(backgroundImage, 0, 0, canvas.getWidth(), canvas.getHeight());
 
                 spaceship.update(canvas.getWidth(), canvas.getHeight(), gc);
+
+                for (Scoutbot scoutbot : scoutbots) {
+                    scoutbot.update(canvas.getWidth(), canvas.getHeight(), gc);
+                }
 
                 Iterator<Bullet> bulletIterator = bullets.iterator();
                 while (bulletIterator.hasNext()) {
@@ -299,22 +325,31 @@ public class AsteroidGame extends Application {
                         bulletIterator.remove();
                         asteroidIterator.remove();
                         asteroid.duplicate(asteroids);
-                        scoreCount++;
-                        logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
 
+                        // Add points based on asteroid size
+                        switch (asteroid.getAsteroidSize()) {
+                            case SMALL:
+                                scoreCount += POINTS_ASTEROID_SMALL;
+                                break;
+                            case MEDIUM:
+                                scoreCount += POINTS_ASTEROID_MEDIUM;
+                                break;
+                            case LARGE:
+                                scoreCount += POINTS_ASTEROID_LARGE;
+                                break;
+                        }
+
+                        logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
                         explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
 
-                        if (scoreCount % 10 == 0) {
+                        if (scoreCount % 1000 == 0) {
                             spawnBoss();
                         }
                         break;
                     }
-
-                    if (!spaceship.isAlive()) {
-                        throw new GameException("Spaceship destroyed");
-                    }
                 }
 
+                // Collision logic for Boss objects
                 Iterator<Boss> bossIterator = bosses.iterator();
                 while (bossIterator.hasNext()) {
                     Boss boss = bossIterator.next();
@@ -329,8 +364,8 @@ public class AsteroidGame extends Application {
                         boss.changeImageTemporarily();
                         if (boss.getHitCount() >= 10) {
                             bossIterator.remove();
-                            scoreCount++;
-                            logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+                            scoreCount += POINTS_BOSS;
+                            logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
 
                             explosions.add(new Explosion(boss.getX(), boss.getY()));
                         }
@@ -339,12 +374,7 @@ public class AsteroidGame extends Application {
                 }
             }
 
-            if (scoreCount > highScore) {
-                highScore = scoreCount;
-                saveHighScore();
-                logger.log(Level.INFO, "New high score: " + highScore);
-            }
-
+            // Collision logic for Asteroids and Spaceship
             Iterator<Asteroid> asteroidIterator = asteroids.iterator();
             while (asteroidIterator.hasNext()) {
                 Asteroid asteroid = asteroidIterator.next();
@@ -354,14 +384,20 @@ public class AsteroidGame extends Application {
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < asteroid.getSize() / 2) {
-                    spaceship.loseLife();
                     asteroidIterator.remove();
+                    spaceship.loseLife();
+                    logger.log(Level.INFO, "Spaceship hit by asteroid. Lives remaining: " + spaceship.getLives());
 
                     if (!spaceship.isAlive()) {
                         throw new GameException("Spaceship destroyed");
                     }
-                    break;
                 }
+            }
+
+            if (scoreCount > highScore) {
+                highScore = scoreCount;
+                saveHighScore();
+                logger.log(Level.INFO, "New high score: " + highScore);
             }
         } catch (Exception e) {
             handleException(e);
@@ -387,12 +423,24 @@ public class AsteroidGame extends Application {
                 if (distance < explosionRadius) {
                     asteroidIterator.remove();
                     asteroid.duplicate(newAsteroids);
-                    scoreCount++;
-                    logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
 
+                    // Add points based on asteroid size
+                    switch (asteroid.getAsteroidSize()) {
+                        case SMALL:
+                            scoreCount += POINTS_ASTEROID_SMALL;
+                            break;
+                        case MEDIUM:
+                            scoreCount += POINTS_ASTEROID_MEDIUM;
+                            break;
+                        case LARGE:
+                            scoreCount += POINTS_ASTEROID_LARGE;
+                            break;
+                    }
+
+                    logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
                     explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
 
-                    if (scoreCount % 10 == 0) {
+                    if (scoreCount % 100 == 0) {
                         spawnBoss();
                     }
                 }
@@ -417,11 +465,28 @@ public class AsteroidGame extends Application {
                     boss.changeImageTemporarily();
                     if (boss.getHitCount() >= 10) {
                         bossIterator.remove();
-                        scoreCount++;
-                        logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+                        scoreCount += POINTS_BOSS;
+                        logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
 
                         explosions.add(new Explosion(boss.getX(), boss.getY()));
                     }
+                }
+            }
+
+            Iterator<Scoutbot> scoutbotIterator = scoutbots.iterator();
+            while (scoutbotIterator.hasNext()) {
+                Scoutbot scoutbot = scoutbotIterator.next();
+
+                double dx = explosionX - scoutbot.getX();
+                double dy = explosionY - scoutbot.getY();
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < explosionRadius) {
+                    scoutbotIterator.remove();
+                    scoreCount += POINTS_SCOUTBOT;
+                    logger.log(Level.INFO, "Scored points. Current score: " + scoreCount);
+
+                    explosions.add(new Explosion(scoutbot.getX(), scoutbot.getY()));
                 }
             }
         } catch (Exception e) {
@@ -437,12 +502,6 @@ public class AsteroidGame extends Application {
 
         bosses.add(new Boss(startX, startY, dx, dy));
     }
-    private void spawnScoutbot() {
-        double startX = random.nextDouble() * canvas.getWidth();
-        double startY = random.nextDouble() * canvas.getHeight();
-        scoutbots.add(new Scoutbot(startX, startY));
-    }
-
 
     private void saveHighScore() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(HIGH_SCORE_FILE))) {

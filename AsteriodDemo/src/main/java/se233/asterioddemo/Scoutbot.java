@@ -14,20 +14,36 @@ public class Scoutbot extends Character {
     private final long bulletInterval = 1000; // Interval between bullets in milliseconds
     private int hitCount = 0; // Number of times the bot has been hit
     private final EnemyAnimation enemyAnimation;
+    private final Spaceship spaceship; // Reference to the spaceship
+    private double radius; // Initial distance from the spaceship
+    private final double radiusDecrement = 20; // Amount to decrease the radius each update
 
     // Range within which Scoutbot will start firing at the player
-    private final double attackRange = 200.0;
+    private final double attackRange = 1200.0;
 
-    public Scoutbot(double startX, double startY) {
-        super(startX, startY, 0, 0, 0, 20); // Adjust the size as needed
+    public Scoutbot(double startX, double startY, Spaceship spaceship, double initialRadius) {
+        super(startX, startY, 0, 0, 0.2, 20); // Adjust the size as needed
         this.enemyAnimation = new EnemyAnimation(startX, startY);
+        this.spaceship = spaceship; // Initialize the spaceship reference
+        this.radius = initialRadius; // Set the initial radius
         System.out.println("Scoutbot spawned!");
     }
 
     @Override
     public void update(double width, double height, GraphicsContext gc) {
-        // Rotate Scoutbot
+        // Calculate the new position based on the orbit around the spaceship
+        double centerX = spaceship.getX();
+        double centerY = spaceship.getY();
+
         angle += rotationSpeed;
+        double radian = Math.toRadians(angle);
+        x = centerX + radius * Math.cos(radian);
+        y = centerY + radius * Math.sin(radian);
+
+        // Decrease the radius over time
+        if (radius > 0) {
+            radius -= radiusDecrement;
+        }
 
         // Update bullets and remove those off-screen
         bullets.removeIf(bullet -> bullet.isOffScreen(width, height));

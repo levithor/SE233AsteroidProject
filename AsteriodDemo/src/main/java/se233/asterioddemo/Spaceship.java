@@ -13,6 +13,7 @@ public class Spaceship extends Character {
     private double currentAngle = 0; // Angle of spaceship facing direction
     private final double speed = 0.1;
     private final double rotationSpeed = 3; // Adjust rotation speed as needed
+    private final double friction = 0.98; // Friction factor to gradually reduce speed
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
@@ -61,6 +62,10 @@ public class Spaceship extends Character {
             velocityY += speed * Math.sin(Math.toRadians(currentAngle + 270));
         }
 
+        // Apply friction to gradually reduce speed when not moving forward
+        velocityX *= friction;
+        velocityY *= friction;
+
         // Calculate the combined velocity magnitude
         double velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
 
@@ -80,12 +85,6 @@ public class Spaceship extends Character {
         y += velocityY;
 
         planeAnimation.setPosition(x, y);
-
-        // Apply friction to gradually reduce speed when not moving forward
-        if (!movingForward) {
-            velocityX *= 0.9;
-            velocityY *= 0.9;
-        }
 
         // Wrap-around screen logic
         if (x < 0) x = canvasWidth;

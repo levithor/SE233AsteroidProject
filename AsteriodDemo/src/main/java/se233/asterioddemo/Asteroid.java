@@ -35,6 +35,10 @@ class Asteroid extends Character {
         }
     }
 
+    public Size getAsteroidSize() {
+        return asteroidSize;
+    }
+
     private double angle = 0;
     private double rotationSpeed = 2; // Rotation speed in degrees per update
     private Image image;

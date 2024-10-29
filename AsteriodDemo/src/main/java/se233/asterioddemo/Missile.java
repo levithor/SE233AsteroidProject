@@ -8,7 +8,7 @@ public class Missile {
     private double speed = 4; // Slower than Bullet but can have different properties
     private long creationTime;
     private static final long EXPLOSION_TIME = 500; // Time in milliseconds before explosion
-    private static final double EXPLOSION_RADIUS = 50; // Radius of the explosion
+    private static final double EXPLOSION_RADIUS = 100; // Radius of the explosion
     private MissileAnimation animation;
 
     public Missile(double x, double y, double dx, double dy) {
