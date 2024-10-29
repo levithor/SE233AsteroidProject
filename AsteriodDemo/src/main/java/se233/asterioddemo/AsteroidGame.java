@@ -40,7 +40,7 @@ public class AsteroidGame extends Application {
     private List<Asteroid> asteroids = new ArrayList<>();
     private List<Boss> bosses = new ArrayList<>();
     private Random random = new Random();
-
+    private List<Scoutbot> scoutbots = new ArrayList<>();
     private Spaceship spaceship;
     private AnimationTimer animationTimer;
     private Image backgroundImage;
@@ -115,6 +115,7 @@ public class AsteroidGame extends Application {
 
         // Initialize game elements and start the game loop
         initGame();
+        spawnScoutbot();
     }
 
     private void initGame() {
@@ -123,6 +124,7 @@ public class AsteroidGame extends Application {
         backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
 
         spaceship = new Spaceship(400, 300);
+        spawnScoutbot();
 
         gameScene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
@@ -158,8 +160,6 @@ public class AsteroidGame extends Application {
         gameScene.setOnMouseClicked(event -> {
             bullets.add(spaceship.createBullet()); //No longer tracks mouse position
         });
-
-
 
         animationTimer = new AnimationTimer() {
             @Override
@@ -437,6 +437,12 @@ public class AsteroidGame extends Application {
 
         bosses.add(new Boss(startX, startY, dx, dy));
     }
+    private void spawnScoutbot() {
+        double startX = random.nextDouble() * canvas.getWidth();
+        double startY = random.nextDouble() * canvas.getHeight();
+        scoutbots.add(new Scoutbot(startX, startY));
+    }
+
 
     private void saveHighScore() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(HIGH_SCORE_FILE))) {
@@ -468,6 +474,7 @@ public class AsteroidGame extends Application {
             Platform.runLater(this::gameOverOption);
         }
     }
+
 
     private void gameOverOption() {
         VBox gameOverBox = new VBox(20);
