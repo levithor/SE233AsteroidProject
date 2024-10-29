@@ -69,10 +69,14 @@ public class AsteroidGame extends Application {
         mainMenuScene = new Scene(menuRoot, 800, 600);
 
         // Load the background image
-        Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
-        BackgroundSize backgroundSize = new BackgroundSize(100, 100, true, true, false, true);
-        BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, backgroundSize);
-        menuRoot.setBackground(new Background(background));
+        try {
+            Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
+            BackgroundSize backgroundSize = new BackgroundSize(100, 100, true, true, false, true);
+            BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, backgroundSize);
+            menuRoot.setBackground(new Background(background));
+        } catch (NullPointerException e) {
+            logger.log(Level.SEVERE, "Background image not found", e);
+        }
 
         // Create and position the label
         Label titleLabel = new Label("ASTEROIDZ");
@@ -279,142 +283,149 @@ public class AsteroidGame extends Application {
     }
 
     private void checkCollisions() {
-        Iterator<Bullet> bulletIterator = bullets.iterator();
-        while (bulletIterator.hasNext()) {
-            Bullet bullet = bulletIterator.next();
+        try {
+            Iterator<Bullet> bulletIterator = bullets.iterator();
+            while (bulletIterator.hasNext()) {
+                Bullet bullet = bulletIterator.next();
+                Iterator<Asteroid> asteroidIterator = asteroids.iterator();
+                while (asteroidIterator.hasNext()) {
+                    Asteroid asteroid = asteroidIterator.next();
+
+                    double dx = bullet.getX() - asteroid.getX();
+                    double dy = bullet.getY() - asteroid.getY();
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < asteroid.getSize() / 2) {
+                        bulletIterator.remove();
+                        asteroidIterator.remove();
+                        asteroid.duplicate(asteroids);
+                        scoreCount++;
+                        logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+
+                        explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
+
+                        if (scoreCount % 10 == 0) {
+                            spawnBoss();
+                        }
+                        break;
+                    }
+
+                    if (!spaceship.isAlive()) {
+                        throw new GameException("Spaceship destroyed");
+                    }
+                }
+
+                Iterator<Boss> bossIterator = bosses.iterator();
+                while (bossIterator.hasNext()) {
+                    Boss boss = bossIterator.next();
+
+                    double dx = bullet.getX() - boss.getX();
+                    double dy = bullet.getY() - boss.getY();
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < boss.getSize() / 2) {
+                        bulletIterator.remove();
+                        boss.incrementHitCount();
+                        boss.changeImageTemporarily();
+                        if (boss.getHitCount() >= 10) {
+                            bossIterator.remove();
+                            scoreCount++;
+                            logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+
+                            explosions.add(new Explosion(boss.getX(), boss.getY()));
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (scoreCount > highScore) {
+                highScore = scoreCount;
+                saveHighScore();
+                logger.log(Level.INFO, "New high score: " + highScore);
+            }
+
             Iterator<Asteroid> asteroidIterator = asteroids.iterator();
             while (asteroidIterator.hasNext()) {
                 Asteroid asteroid = asteroidIterator.next();
 
-                double dx = bullet.getX() - asteroid.getX();
-                double dy = bullet.getY() - asteroid.getY();
+                double dx = spaceship.getX() - asteroid.getX();
+                double dy = spaceship.getY() - asteroid.getY();
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < asteroid.getSize() / 2) {
-                    bulletIterator.remove();
+                    spaceship.loseLife();
                     asteroidIterator.remove();
-                    asteroid.duplicate(asteroids); // Duplicate the asteroid
-                    scoreCount++; // Increment the collision counter
-                    logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
 
-                    // Add explosion
-                    explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
-
-                    // Spawn a Boss if scoreCount is divisible by 10
-                    if (scoreCount % 10 == 0) {
-                        spawnBoss();
+                    if (!spaceship.isAlive()) {
+                        throw new GameException("Spaceship destroyed");
                     }
                     break;
                 }
             }
-
-            // Check collision with Boss
-            Iterator<Boss> bossIterator = bosses.iterator();
-            while (bossIterator.hasNext()) {
-                Boss boss = bossIterator.next();
-
-                double dx = bullet.getX() - boss.getX();
-                double dy = bullet.getY() - boss.getY();
-                double distance = Math.sqrt(dx * dx + dy * dy);
-
-                if (distance < boss.getSize() / 2) {
-                    bulletIterator.remove();
-                    boss.incrementHitCount();
-                    boss.changeImageTemporarily();
-                    if (boss.getHitCount() >= 10) {
-                        bossIterator.remove();
-                        scoreCount++; // Increment the collision counter
-                        logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
-
-                        // Add explosion
-                        explosions.add(new Explosion(boss.getX(), boss.getY()));
-                    }
-                    break;
-                }
-            }
-        }
-
-        if (scoreCount > highScore) {
-            highScore = scoreCount;
-            saveHighScore();
-            logger.log(Level.INFO, "New high score: " + highScore);
-        }
-
-        Iterator<Asteroid> asteroidIterator = asteroids.iterator();
-        while (asteroidIterator.hasNext()) {
-            Asteroid asteroid = asteroidIterator.next();
-
-            double dx = spaceship.getX() - asteroid.getX();
-            double dy = spaceship.getY() - asteroid.getY();
-            double distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < asteroid.getSize() / 2) {
-                spaceship.loseLife();
-                asteroidIterator.remove();
-
-                if (!spaceship.isAlive()) {
-                    animationTimer.stop();
-                    Platform.runLater(this::gameOverOption);
-                    break;
-                }
-                break;
-            }
+        } catch (Exception e) {
+            handleException(e);
         }
     }
 
     private void handleMissileExplosion(Missile missile) {
-        double explosionX = missile.getX();
-        double explosionY = missile.getY();
-        double explosionRadius = missile.getExplosionRadius();
+        try {
+            double explosionX = missile.getX();
+            double explosionY = missile.getY();
+            double explosionRadius = missile.getExplosionRadius();
 
-        List<Asteroid> newAsteroids = new ArrayList<>(); // List to hold new asteroids
+            List<Asteroid> newAsteroids = new ArrayList<>();
 
-        Iterator<Asteroid> asteroidIterator = asteroids.iterator();
-        while (asteroidIterator.hasNext()) {
-            Asteroid asteroid = asteroidIterator.next();
+            Iterator<Asteroid> asteroidIterator = asteroids.iterator();
+            while (asteroidIterator.hasNext()) {
+                Asteroid asteroid = asteroidIterator.next();
 
-            double dx = explosionX - asteroid.getX();
-            double dy = explosionY - asteroid.getY();
-            double distance = Math.sqrt(dx * dx + dy * dy);
+                double dx = explosionX - asteroid.getX();
+                double dy = explosionY - asteroid.getY();
+                double distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance < explosionRadius) {
-                asteroidIterator.remove();
-                asteroid.duplicate(newAsteroids); // Add new asteroids to the separate list
-                scoreCount++; // Increment the collision counter
-                logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
-
-                // Add explosion
-                explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
-
-                // Spawn a Boss if scoreCount is divisible by 10
-                if (scoreCount % 10 == 0) {
-                    spawnBoss();
-                }
-            }
-        }
-
-        asteroids.addAll(newAsteroids); // Add new asteroids to the main list after iteration
-
-        Iterator<Boss> bossIterator = bosses.iterator();
-        while (bossIterator.hasNext()) {
-            Boss boss = bossIterator.next();
-
-            double dx = explosionX - boss.getX();
-            double dy = explosionY - boss.getY();
-            double distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < explosionRadius) {
-                boss.incrementHitCount();
-                boss.changeImageTemporarily();
-                if (boss.getHitCount() >= 10) {
-                    bossIterator.remove();
-                    scoreCount++; // Increment the collision counter
+                if (distance < explosionRadius) {
+                    asteroidIterator.remove();
+                    asteroid.duplicate(newAsteroids);
+                    scoreCount++;
                     logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
 
-                    // Add explosion
-                    explosions.add(new Explosion(boss.getX(), boss.getY()));
+                    explosions.add(new Explosion(asteroid.getX(), asteroid.getY()));
+
+                    if (scoreCount % 10 == 0) {
+                        spawnBoss();
+                    }
+                }
+
+                if (missile == null) {
+                    throw new GameException("Missile is null");
                 }
             }
+
+            asteroids.addAll(newAsteroids);
+
+            Iterator<Boss> bossIterator = bosses.iterator();
+            while (bossIterator.hasNext()) {
+                Boss boss = bossIterator.next();
+
+                double dx = explosionX - boss.getX();
+                double dy = explosionY - boss.getY();
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < explosionRadius) {
+                    boss.incrementHitCount();
+                    boss.changeImageTemporarily();
+                    if (boss.getHitCount() >= 10) {
+                        bossIterator.remove();
+                        scoreCount++;
+                        logger.log(Level.INFO, "Scored a point. Current score: " + scoreCount);
+
+                        explosions.add(new Explosion(boss.getX(), boss.getY()));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            handleException(e);
         }
     }
 
@@ -431,7 +442,7 @@ public class AsteroidGame extends Application {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(HIGH_SCORE_FILE))) {
             writer.write(String.valueOf(highScore));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failed to save high score", e);
         }
     }
 
@@ -442,7 +453,19 @@ public class AsteroidGame extends Application {
                 highScore = Integer.parseInt(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failed to load high score", e);
+        } catch (NumberFormatException e) {
+            logger.log(Level.SEVERE, "Invalid high score format", e);
+        }
+    }
+
+    // This method is used to handle exceptions that occur during the game
+    private void handleException(Exception e) {
+        logger.log(Level.SEVERE, e.getMessage(), e);
+        if (e instanceof GameException) {
+            // Handle game-specific exceptions
+            animationTimer.stop();
+            Platform.runLater(this::gameOverOption);
         }
     }
 
