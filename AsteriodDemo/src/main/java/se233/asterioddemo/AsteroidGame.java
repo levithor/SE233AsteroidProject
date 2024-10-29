@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Pos;
+
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -93,24 +94,47 @@ public class AsteroidGame extends Application {
         titleLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: orange;"); // Optional: style the label
 
         Button startButton = new Button("Start Game");
-        startButton.setLayoutX(350);
+        startButton.setLayoutX(332);
         startButton.setLayoutY(250);
+        startButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
         startButton.setOnAction(event -> startGame(primaryStage));
+        addHoverEffect(startButton);
 
         Button resetHighScoreButton = new Button("Reset High Score");
-        resetHighScoreButton.setLayoutX(350);
+        resetHighScoreButton.setLayoutX(305);
         resetHighScoreButton.setLayoutY(300);
+        resetHighScoreButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
         resetHighScoreButton.setOnAction(event -> {
             highScore = 0;
             saveHighScore();
         });
+        addHoverEffect(resetHighScoreButton);
 
         Button exitButton = new Button("Exit");
-        exitButton.setLayoutX(350);
+        exitButton.setLayoutX(370);
         exitButton.setLayoutY(350);
+        exitButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
         exitButton.setOnAction(event -> Platform.exit());
+        addHoverEffect(exitButton);
 
-        menuRoot.getChildren().addAll(titleLabel, startButton, resetHighScoreButton, exitButton);
+        // Create and position the calculator button
+        Button calculatorButton = new Button("Calculator");
+        calculatorButton.setLayoutX(670); // Adjust the X position as needed
+        calculatorButton.setLayoutY(550); // Adjust the Y position as needed
+        calculatorButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
+        calculatorButton.setOnAction(event -> {
+            Calculator calculator = new Calculator();
+            Stage calculatorStage = new Stage();
+            calculator.start(calculatorStage);
+        });
+        addHoverEffect(calculatorButton);
+
+        menuRoot.getChildren().addAll(titleLabel, startButton, resetHighScoreButton, exitButton, calculatorButton);
+    }
+
+    private void addHoverEffect(Button button) {
+        button.setOnMouseEntered(event -> button.setStyle("-fx-background-color: gray;-fx-font-size:22;-fx-text-fill:white"));
+        button.setOnMouseExited(event -> button.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white"));
     }
 
     private void startGame(Stage primaryStage) {
@@ -135,7 +159,7 @@ public class AsteroidGame extends Application {
         scoutbots.add(new Scoutbot(startX, startY, spaceship, SCOUTBOT_SPAWN_DISTANCE));
     }
 
-    private void initGame() {
+    public void initGame() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/spaceBG.jpg")));
@@ -311,7 +335,7 @@ public class AsteroidGame extends Application {
         asteroids.add(new Asteroid(startX, startY, dx, dy, size));
     }
 
-    private void checkCollisions() {
+    public void checkCollisions() {
         try {
             Iterator<Bullet> bulletIterator = bullets.iterator();
             while (bulletIterator.hasNext()) {
@@ -537,6 +561,17 @@ public class AsteroidGame extends Application {
         }
     }
 
+    public List<Bullet> getBullets() {
+        return bullets;
+    }
+
+    public List<Asteroid> getAsteroids() {
+        return asteroids;
+    }
+
+    public int getScoreCount() {
+        return scoreCount;
+    }
 
     private void gameOverOption() {
         VBox gameOverBox = new VBox(20);
@@ -548,6 +583,7 @@ public class AsteroidGame extends Application {
         gameOverLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: white;");
 
         Button restartButton = new Button("Restart");
+        restartButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
         restartButton.setOnAction(event -> {
             scoreCount = 0;
             spaceship.reset();
@@ -557,14 +593,19 @@ public class AsteroidGame extends Application {
             explosions.clear();
             startGame((Stage) root.getScene().getWindow());
         });
+        addHoverEffect(restartButton);
 
         Button returnToMenuButton = new Button("Return to Menu");
+        returnToMenuButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
         returnToMenuButton.setOnAction(event -> {
             ((Stage) root.getScene().getWindow()).setScene(mainMenuScene);
         });
+        addHoverEffect(returnToMenuButton);
 
         Button exitButton = new Button("Exit");
+        exitButton.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white");
         exitButton.setOnAction(event -> Platform.exit());
+        addHoverEffect(exitButton);
 
         gameOverBox.getChildren().addAll(gameOverLabel, restartButton, returnToMenuButton, exitButton);
         root.getChildren().add(gameOverBox);

@@ -6,7 +6,7 @@ import javafx.scene.transform.Rotate;
 import java.util.List;
 import java.util.Objects;
 
-class Asteroid extends Character {
+public class Asteroid extends Character {
     public enum Size {
         SMALL(30, 1.25), MEDIUM(45, 0.75), LARGE(65, 0.25);
 

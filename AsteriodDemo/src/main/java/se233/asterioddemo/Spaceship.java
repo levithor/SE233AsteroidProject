@@ -13,7 +13,8 @@ public class Spaceship extends Character {
     private double currentAngle = 0; // Angle of spaceship facing direction
     private final double speed = 0.1;
     private final double rotationSpeed = 3; // Adjust rotation speed as needed
-    private final double friction = 0.98; // Friction factor to gradually reduce speed
+    private final double friction = 0.97; // Friction factor to gradually reduce speed
+    private long lastLogTime = 0; // Timestamp for the last log
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
@@ -46,6 +47,18 @@ public class Spaceship extends Character {
         return lives > 0;
     }
 
+    public double getCurrentAngle() {
+        return currentAngle;
+    }
+
+    public double getVelocityX() {
+        return velocityX;
+    }
+
+    public double getVelocityY() {
+        return velocityY;
+    }
+
     @Override
     public void update(double canvasWidth, double canvasHeight, GraphicsContext gc) {
         // Rotate the spaceship when rotating left or right
@@ -63,8 +76,10 @@ public class Spaceship extends Character {
         }
 
         // Apply friction to gradually reduce speed when not moving forward
-        velocityX *= friction;
-        velocityY *= friction;
+        if (!movingForward) {
+            velocityX *= friction;
+            velocityY *= friction;
+        }
 
         // Calculate the combined velocity magnitude
         double velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
@@ -92,6 +107,13 @@ public class Spaceship extends Character {
         if (y < 0) y = canvasHeight;
         if (y > canvasHeight) y = 0;
 
+        // Log the spaceship's position and velocity once every second
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastLogTime >= 1000) {
+            logger.log(Level.INFO, "Spaceship position: (" + x + ", " + y + "), velocity: (" + velocityX + ", " + velocityY + ")");
+            lastLogTime = currentTime;
+        }
+
         planeAnimation.draw(gc);
     }
 
@@ -118,5 +140,13 @@ public class Spaceship extends Character {
         this.rotatingLeft = false;
         this.rotatingRight = false;
         this.movingForward = false;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public void setY(double y) {
+        this.y = y;
     }
 }

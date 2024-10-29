@@ -1,6 +1,6 @@
 package se233.asterioddemo;
 
-class Bullet {
+public class Bullet {
     private double x, y;
     private double dx, dy;
     private double speed = 10;
