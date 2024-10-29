@@ -11,7 +11,7 @@ public class EnemyAnimation extends Animation {
 
     public EnemyAnimation(double x, double y) {
         // Call superclass constructor with null for image path and assign other parameters
-        super(x, y, "/se233/asterioddemo/assets/enemyone.jpg", 3, 1, 0.2);
+        super(x, y, "/se233/asterioddemo/assets/enemyone.jpg", 3, 1, 0.3);
 
         // Load image after superclass constructor is called
         try {

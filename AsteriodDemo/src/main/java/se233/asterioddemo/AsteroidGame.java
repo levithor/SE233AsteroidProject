@@ -34,7 +34,7 @@ public class AsteroidGame extends Application {
     private Scene gameScene;
     private Pane root;
     private Canvas canvas;
-    private static final double SCOUTBOT_SPAWN_DISTANCE = 10; // Configurable spawn distance
+    private static final double SCOUTBOT_SPAWN_DISTANCE = 500; // Configurable spawn distance
     private static final int POINTS_ASTEROID_SMALL = 100;
     private static final int POINTS_ASTEROID_MEDIUM = 50;
     private static final int POINTS_ASTEROID_LARGE = 20;
