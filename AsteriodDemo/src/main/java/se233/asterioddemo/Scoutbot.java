@@ -16,16 +16,16 @@ public class Scoutbot extends Character {
     private final EnemyAnimation enemyAnimation;
     private final Spaceship spaceship; // Reference to the spaceship
     private double radius; // Initial distance from the spaceship
-    private final double radiusDecrement = 5; // Amount to decrease the radius each update
+    private final double radiusDecrement = 20; // Amount to decrease the radius each update
 
     // Range within which Scoutbot will start firing at the player
-    private final double attackRange = 1200.0;
+    private final double attackRange = 120000.0;
 
     public Scoutbot(double startX, double startY, Spaceship spaceship, double initialRadius) {
         super(startX, startY, 0, 0, 0.2, 50); // Adjust the size as needed
         this.enemyAnimation = new EnemyAnimation(startX, startY);
         this.spaceship = spaceship; // Initialize the spaceship reference
-        this.radius = initialRadius; // Set the initial radius
+        this.radius = 300; // Set the initial radius
         System.out.println("Scoutbot spawned!");
     }
 
@@ -45,6 +45,9 @@ public class Scoutbot extends Character {
             radius -= radiusDecrement;
         }
 
+        // Check for firing at player
+        attackPlayer(spaceship); // Call attackPlayer to handle firing when in range
+
         // Update bullets and remove those off-screen
         bullets.removeIf(bullet -> bullet.isOffScreen(width, height));
         bullets.forEach(Bullet::update);
@@ -61,25 +64,26 @@ public class Scoutbot extends Character {
             gc.fillOval(bullet.getX(), bullet.getY(), 5, 5); // Render bullets
         }
     }
+        public void attackPlayer(Spaceship spaceship) {
+            // Check distance to player
+            double distance = Math.sqrt(Math.pow(spaceship.getX() - x, 2) + Math.pow(spaceship.getY() - y, 2));
 
-    public void attackPlayer(Spaceship spaceship) {
-        // Check distance to player
-        double distance = Math.sqrt(Math.pow(spaceship.getX() - x, 2) + Math.pow(spaceship.getY() - y, 2));
+            if (distance <= attackRange && System.currentTimeMillis() - lastBulletTime > bulletInterval) {
+                // Calculate direction towards the player
+                double dx = spaceship.getX() - x;
+                double dy = spaceship.getY() - y;
+                double magnitude = Math.sqrt(dx * dx + dy * dy);
+                dx /= magnitude;
+                dy /= magnitude;
 
-        if (distance <= attackRange && System.currentTimeMillis() - lastBulletTime > bulletInterval) {
-            // Calculate direction towards the player
-            double dx = spaceship.getX() - x;
-            double dy = spaceship.getY() - y;
-            double magnitude = Math.sqrt(dx * dx + dy * dy);
-            dx /= magnitude;
-            dy /= magnitude;
-
-            // Fire bullet
-            bullets.add(new Bullet(x, y, dx, dy));
-            lastBulletTime = System.currentTimeMillis();
-            System.out.println("Scoutbot is attacking player!");
+                // Fire bullet from Scoutbot's current position (x, y)
+                System.out.println("Scoutbot firing bullet from: x = " + x + ", y = " + y);
+                bullets.add(new Bullet(x, y, dx, dy)); // Start bullet at Scoutbot’s location
+                lastBulletTime = System.currentTimeMillis();
+                System.out.println("Scoutbot is attacking player!");
+            }
         }
-    }
+
 
     public void takeHit() {
         hitCount++;
