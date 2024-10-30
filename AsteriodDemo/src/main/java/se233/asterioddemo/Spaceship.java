@@ -20,7 +20,10 @@ public class Spaceship extends Character {
 
     // Load the shoot sound
     private final AudioClip shootSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/fire.wav")).toString());
-
+    // Load the lose life sound
+    private final AudioClip loseLifeSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/oof.mp3")).toString());
+    // Load the missile fire sound
+    private final AudioClip missileFireSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/missileFire.wav")).toString());
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
@@ -46,6 +49,7 @@ public class Spaceship extends Character {
 
     public void loseLife() {
         lives--;
+        loseLifeSound.play(); // Play sound when losing a life
         logger.log(Level.WARNING, "Lost a life. Remaining lives: " + lives);
     }
 
@@ -135,6 +139,7 @@ public class Spaceship extends Character {
         double angle = Math.toRadians(currentAngle + 270);
         double missileDx = Math.cos(angle);
         double missileDy = Math.sin(angle);
+        missileFireSound.play(); // Play sound when missile is created
         return new Missile(x + 7.5, y + 7.5, missileDx, missileDy);
     }
 

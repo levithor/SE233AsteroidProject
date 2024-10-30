@@ -15,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
@@ -31,6 +32,8 @@ import java.util.*;
 
 public class AsteroidGame extends Application {
 
+    // Load the boss spawn sound
+    private final AudioClip bossSpawnSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/bossSpawn.mp3")).toString());
     private AudioClip clickSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/clickSound.wav")).toString());
     private AudioClip hoverSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/hoverSound.wav")).toString());
     private static final Logger logger = Logger.getLogger(AsteroidGame.class.getName());
@@ -39,7 +42,7 @@ public class AsteroidGame extends Application {
     private int hitCount = 0;
     private static final int HITS_FOR_BOSS = 20; // Threshold for spawning a Boss
 
-
+    private static final int FONT_SIZE = 20; // Define a constant for the font size
     private static final String HIGH_SCORE_FILE = "highscore.txt";
     private int highScore = 0;
     private Scene mainMenuScene;
@@ -318,6 +321,7 @@ public class AsteroidGame extends Application {
                 checkCollisions();
 
                 gc.setFill(Color.VIOLET);
+                gc.setFont(new Font(FONT_SIZE)); // Set the font size
                 gc.fillText("Score: " + scoreCount, 10, 20);
                 gc.fillText("Lives: " + spaceship.getLives(), 10, 40);
                 gc.fillText("High Score: " + highScore, 10, 60);
@@ -576,6 +580,7 @@ public class AsteroidGame extends Application {
         double dy = 1; // Move downwards
 
         bosses.add(new Boss(startX, startY, dx, dy));
+        bossSpawnSound.play(); // Play sound when boss is spawned
     }
 
     private void saveHighScore() {
