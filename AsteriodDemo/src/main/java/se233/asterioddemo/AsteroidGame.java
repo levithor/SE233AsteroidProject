@@ -3,6 +3,8 @@ package se233.asterioddemo;
 import javafx.application.Platform;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 
 import javafx.scene.Scene;
@@ -16,6 +18,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Button;
+
+import javafx.scene.media.AudioClip;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import javafx.animation.KeyFrame;
@@ -27,11 +31,13 @@ import java.util.*;
 
 public class AsteroidGame extends Application {
 
+    private AudioClip clickSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/clickSound.wav")).toString());
+    private AudioClip hoverSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/hoverSound.wav")).toString());
     private static final Logger logger = Logger.getLogger(AsteroidGame.class.getName());
     private long lastMissileTime = 0;
     private static final long MISSILE_COOLDOWN = 2000; // Cooldown period in milliseconds
     private int hitCount = 0;
-    private static final int HITS_FOR_BOSS = 10; // Threshold for spawning a Boss
+    private static final int HITS_FOR_BOSS = 20; // Threshold for spawning a Boss
 
 
     private static final String HIGH_SCORE_FILE = "highscore.txt";
@@ -139,8 +145,22 @@ public class AsteroidGame extends Application {
     }
 
     private void addHoverEffect(Button button) {
-        button.setOnMouseEntered(event -> button.setStyle("-fx-background-color: gray;-fx-font-size:22;-fx-text-fill:white"));
+        button.setOnMouseEntered(event -> {
+            button.setStyle("-fx-background-color: gray;-fx-font-size:22;-fx-text-fill:white");
+            hoverSound.play(); // Play sound on hover
+        });
         button.setOnMouseExited(event -> button.setStyle("-fx-background-color: black;-fx-font-size:22;-fx-text-fill:white"));
+
+        // Store the original action event handler
+        EventHandler<ActionEvent> originalHandler = button.getOnAction();
+
+        // Set a new action event handler
+        button.setOnAction(event -> {
+            clickSound.play(); // Play sound on button press
+            if (originalHandler != null) {
+                originalHandler.handle(event); // Call the original action event handler
+            }
+        });
     }
 
     private void startGame(Stage primaryStage) {

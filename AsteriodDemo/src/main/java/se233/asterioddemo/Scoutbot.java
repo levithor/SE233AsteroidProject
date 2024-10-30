@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Scoutbot extends Character {
-    private Image image;
     private double angle = 0;
     private final double rotationSpeed = 0.2; // Speed of rotation
     private List<Bullet> bullets = new ArrayList<>(); // List to hold bullets
@@ -17,6 +16,7 @@ public class Scoutbot extends Character {
     private final Spaceship spaceship; // Reference to the spaceship
     private double radius; // Initial distance from the spaceship
     private final double radiusDecrement = 0.1; // Amount to decrease the radius each update
+    private double bulletSpeed = 0.05; // Speed of emitted bullets
 
     // Range within which Scoutbot will start firing at the player
     private final double attackRange = 120000.0;
@@ -81,12 +81,11 @@ public class Scoutbot extends Character {
 
             // Fire bullet and reset lastBulletTime
             System.out.println("Scoutbot fired a bullet!");
-            bullets.add(new Bullet(x, y, dx, dy));
+            bullets.add(new Bullet(x, y, dx * bulletSpeed, dy * bulletSpeed));
             lastBulletTime = System.currentTimeMillis();
             System.out.println("Scoutbot is attacking player!");
         }
     }
-
 
     public void takeHit() {
         hitCount++;
@@ -100,5 +99,13 @@ public class Scoutbot extends Character {
 
     public List<Bullet> getBullets() {
         return bullets;
+    }
+
+    public double getBulletSpeed() {
+        return bulletSpeed;
+    }
+
+    public void setBulletSpeed(double bulletSpeed) {
+        this.bulletSpeed = bulletSpeed;
     }
 }

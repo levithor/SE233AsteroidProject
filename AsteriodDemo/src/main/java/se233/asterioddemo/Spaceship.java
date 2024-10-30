@@ -13,7 +13,7 @@ public class Spaceship extends Character {
     private double currentAngle = 0; // Angle of spaceship facing direction
     private final double speed = 0.1;
     private final double rotationSpeed = 3; // Adjust rotation speed as needed
-    private final double friction = 0.97; // Friction factor to gradually reduce speed
+    private final double friction = 0.98; // Friction factor to gradually reduce speed
     private long lastLogTime = 0; // Timestamp for the last log
 
     public Spaceship(double startX, double startY) {
