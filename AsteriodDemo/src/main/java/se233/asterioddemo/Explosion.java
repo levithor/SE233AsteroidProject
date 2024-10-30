@@ -1,7 +1,10 @@
 package se233.asterioddemo;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.media.AudioClip;
+import java.util.Objects;
 
 import java.util.Objects;
 
@@ -19,12 +22,17 @@ public class Explosion {
     private int delayThreshold = 3; // Adjust this value to slow down the animation
     private double scale = 0.5; // Scale factor for the animation size
 
+    // Load the explosion sound
+    private final AudioClip explosionSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/bang.wav")).toString());
+
+
     public Explosion(double x, double y) {
         this.x = x;
         this.y = y;
         this.spriteSheet = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/se233/asterioddemo/assets/explosion.png")));
         this.frameWidth = spriteSheet.getWidth() / columns;
         this.frameHeight = spriteSheet.getHeight() / rows;
+        explosionSound.play(); // Play sound when explosion is created
     }
 
     public void setScale(double scale) {

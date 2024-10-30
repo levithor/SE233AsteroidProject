@@ -1,8 +1,10 @@
 package se233.asterioddemo;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.media.AudioClip;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.Objects;
 
 public class Spaceship extends Character {
     private static final Logger logger = Logger.getLogger(Spaceship.class.getName());
@@ -15,6 +17,10 @@ public class Spaceship extends Character {
     private final double rotationSpeed = 3; // Adjust rotation speed as needed
     private final double friction = 0.98; // Friction factor to gradually reduce speed
     private long lastLogTime = 0; // Timestamp for the last log
+
+    // Load the shoot sound
+    private final AudioClip shootSound = new AudioClip(Objects.requireNonNull(getClass().getResource("/sounds/fire.wav")).toString());
+
 
     public Spaceship(double startX, double startY) {
         super(startX, startY, 0, 0, 0.1, 0);
@@ -121,6 +127,7 @@ public class Spaceship extends Character {
         double angle = Math.toRadians(currentAngle + 270);
         double bulletDx = Math.cos(angle);
         double bulletDy = Math.sin(angle);
+        shootSound.play(); // Play sound when bullet is created
         return new Bullet(x + 7.5, y + 7.5, bulletDx, bulletDy);
     }
 
